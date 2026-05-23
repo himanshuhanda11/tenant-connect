@@ -19,6 +19,8 @@ import { ContactsBulkActionsBar } from '@/components/contacts/ContactsBulkAction
 import { CreateSegmentModal } from '@/components/contacts/CreateSegmentModal';
 import { AddContactModal } from '@/components/contacts/AddContactModal';
 import { ContactsKanbanView } from '@/components/contacts/ContactsKanbanView';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Lazy-load the heavy detail drawer (~834 lines with nested tabs) — perf optimization
 const ContactDetailDrawer = lazy(() =>
@@ -355,6 +357,49 @@ export default function Contacts() {
   };
 
   const totalCount = crmTotalCount;
+  const totalPages = Math.max(1, Math.ceil(totalCount / crmPageSize));
+  const pageStart = totalCount === 0 ? 0 : crmPage * crmPageSize + 1;
+  const pageEnd = Math.min((crmPage + 1) * crmPageSize, totalCount);
+  const paginationSummary = (
+    <span>
+      Showing <span className="font-semibold text-foreground tabular-nums">{pageStart.toLocaleString()}</span>–<span className="font-semibold text-foreground tabular-nums">{pageEnd.toLocaleString()}</span> of <span className="font-semibold text-foreground tabular-nums">{totalCount.toLocaleString()}</span> contacts
+    </span>
+  );
+  const handleCrmPageChange = (nextPage: number) => {
+    const clamped = Math.min(Math.max(nextPage, 0), totalPages - 1);
+    if (clamped === crmPage) return;
+    setSelectedContactIds([]);
+    setCrmPage(clamped);
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  };
+
+  const paginationControls = (
+    <div className="flex items-center justify-between gap-2 sm:justify-end">
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-9 gap-1.5 rounded-lg"
+        onClick={() => handleCrmPageChange(crmPage - 1)}
+        disabled={crmPage <= 0 || crmLoading}
+      >
+        <ChevronLeft className="h-4 w-4" />
+        Previous
+      </Button>
+      <div className="min-w-[92px] text-center text-xs font-semibold text-foreground tabular-nums">
+        Page {crmPage + 1} / {totalPages}
+      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-9 gap-1.5 rounded-lg"
+        onClick={() => handleCrmPageChange(crmPage + 1)}
+        disabled={crmPage >= totalPages - 1 || crmLoading}
+      >
+        Next
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </div>
+  );
 
   // ---- Quick-filter (client-side, applied to current page) ----
   const visibleContacts = useMemo(() => {
@@ -462,14 +507,25 @@ export default function Contacts() {
           </div>
 
           <div className="px-4 md:px-8 pb-6 pt-4">
+            <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-border/60 bg-card/90 px-3 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-4">
+              <div className="text-sm text-muted-foreground">{paginationSummary}</div>
+              {paginationControls}
+            </div>
+
             {viewMode === 'kanban' ? (
-              <ContactsKanbanView
-                contacts={visibleContacts}
-                loading={crmLoading}
-                inboxSummaries={inboxSummaries}
-                onSelectContact={handleContactSelect}
-                selectedContactId={selectedContact?.id}
-              />
+              <>
+                <ContactsKanbanView
+                  contacts={visibleContacts}
+                  loading={crmLoading}
+                  inboxSummaries={inboxSummaries}
+                  onSelectContact={handleContactSelect}
+                  selectedContactId={selectedContact?.id}
+                />
+                <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-border/60 bg-card/90 px-3 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-4">
+                  <div className="text-sm text-muted-foreground">{paginationSummary}</div>
+                  {paginationControls}
+                </div>
+              </>
             ) : (
               <div className="rounded-2xl border border-border/60 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
                 <ContactsTable
@@ -478,7 +534,7 @@ export default function Contacts() {
                   totalCount={quickFilter === 'all' ? totalCount : visibleContacts.length}
                   page={crmPage + 1}
                   pageSize={crmPageSize}
-                  onPageChange={(p) => setCrmPage(p - 1)}
+                  onPageChange={(p) => handleCrmPageChange(p - 1)}
                   onSelectContact={handleContactSelect}
                   selectedContactId={selectedContact?.id}
                   selectedContactIds={selectedContactIds}

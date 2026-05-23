@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Calendar as CalendarPicker } from '@/components/ui/calendar';
 import {
   Popover,
   PopoverContent,
@@ -177,29 +179,51 @@ export function ContactsAdvancedFilters({
 
   const activeFilters = getActiveFilters();
   const hasFilters = activeFilters.length > 0 || !!filters.search;
+  const fromDate = filters.createdDateFrom ? new Date(`${filters.createdDateFrom}T00:00:00`) : undefined;
+  const toDate = filters.createdDateTo ? new Date(`${filters.createdDateTo}T00:00:00`) : undefined;
+  const formatDateValue = (date?: Date) => date ? format(date, 'MMM d, yyyy') : 'Any date';
+  const toDateInputValue = (date?: Date) => date ? format(date, 'yyyy-MM-dd') : undefined;
 
   return (
     <div className="space-y-3 px-3 sm:px-6 py-3 sm:py-4 border-b bg-muted/30">
       {/* Row 1: Search + Filter Button + Quick Date */}
       <div className="flex items-center gap-2 flex-wrap">
         {/* Compact Date range — search lives in the page header */}
-        <div className="hidden sm:flex items-center gap-2 bg-background border border-border/60 rounded-lg px-3 h-9 shadow-sm">
-          <Calendar className="h-3.5 w-3.5 text-primary shrink-0" />
-          <span className="text-[11px] font-medium text-muted-foreground">From</span>
-          <Input
-            type="date"
-            value={filters.createdDateFrom || ''}
-            onChange={(e) => updateFilter('createdDateFrom', e.target.value || undefined)}
-            className="h-7 border-0 p-0 text-xs w-[130px] bg-transparent text-foreground focus-visible:ring-0 [color-scheme:light] dark:[color-scheme:dark]"
-          />
-          <span className="text-xs text-muted-foreground px-1">→</span>
-          <span className="text-[11px] font-medium text-muted-foreground">To</span>
-          <Input
-            type="date"
-            value={filters.createdDateTo || ''}
-            onChange={(e) => updateFilter('createdDateTo', e.target.value || undefined)}
-            className="h-7 border-0 p-0 text-xs w-[130px] bg-transparent text-foreground focus-visible:ring-0 [color-scheme:light] dark:[color-scheme:dark]"
-          />
+        <div className="flex w-full sm:w-auto items-center gap-2 rounded-lg border border-border/60 bg-background p-1.5 shadow-sm">
+          <Calendar className="hidden sm:block h-3.5 w-3.5 text-primary shrink-0 ml-1" />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 flex-1 sm:flex-none justify-start gap-2 px-2 text-left font-medium hover:bg-muted/70">
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">From</span>
+                <span className={cn('text-xs tabular-nums', !fromDate && 'text-muted-foreground')}>{formatDateValue(fromDate)}</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarPicker
+                mode="single"
+                selected={fromDate}
+                onSelect={(date) => updateFilter('createdDateFrom', toDateInputValue(date))}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          <span className="text-xs text-muted-foreground">→</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 flex-1 sm:flex-none justify-start gap-2 px-2 text-left font-medium hover:bg-muted/70">
+                <span className="text-[10px] uppercase tracking-wide text-muted-foreground">To</span>
+                <span className={cn('text-xs tabular-nums', !toDate && 'text-muted-foreground')}>{formatDateValue(toDate)}</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarPicker
+                mode="single"
+                selected={toDate}
+                onSelect={(date) => updateFilter('createdDateTo', toDateInputValue(date))}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
 
