@@ -284,36 +284,44 @@ export default function Contact() {
         expectedResponse: cat.responseTime,
       };
 
-      // Customer confirmation
-      supabase.functions.invoke('send-transactional-email', {
-        body: {
-          templateName: 'contact-request-customer',
-          recipientEmail: data.email,
-          idempotencyKey: `contact-customer-${inserted.ticket_id}`,
-          templateData: { recipientName: data.fullName.split(' ')[0], ...sharedPayload },
-        },
-      }).catch((e) => console.warn('customer email failed', e));
-
-      // Admin notification (template has fixed `to: info@aireatro.com`)
-      supabase.functions.invoke('send-transactional-email', {
-        body: {
-          templateName: 'contact-request-admin',
-          recipientEmail: 'info@aireatro.com',
-          idempotencyKey: `contact-admin-${inserted.ticket_id}`,
-          templateData: {
-            ...sharedPayload,
-            fullName: data.fullName,
-            email: data.email,
-            phone: data.phone,
-            businessName: data.businessName,
-            country: data.country,
-            workspaceLabel: data.workspaceLabel,
-            attachmentUrl,
-            sourcePage: typeof window !== 'undefined' ? window.location.pathname : '/contact',
-            metadataLines,
+      const [customerEmailResult, adminEmailResult] = await Promise.allSettled([
+        supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'contact-request-customer',
+            recipientEmail: data.email,
+            idempotencyKey: `contact-customer-${inserted.ticket_id}`,
+            templateData: { recipientName: data.fullName.split(' ')[0], ...sharedPayload },
           },
-        },
-      }).catch((e) => console.warn('admin email failed', e));
+        }),
+        supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'contact-request-admin',
+            recipientEmail: 'info@aireatro.com',
+            idempotencyKey: `contact-admin-${inserted.ticket_id}`,
+            templateData: {
+              ...sharedPayload,
+              fullName: data.fullName,
+              email: data.email,
+              phone: data.phone,
+              businessName: data.businessName,
+              country: data.country,
+              workspaceLabel: data.workspaceLabel,
+              attachmentUrl,
+              sourcePage: typeof window !== 'undefined' ? window.location.pathname : '/contact',
+              metadataLines,
+            },
+          },
+        }),
+      ]);
+
+      const failedEmail = [customerEmailResult, adminEmailResult].find((result) => {
+        if (result.status === 'rejected') return true;
+        return Boolean(result.value.error);
+      });
+      if (failedEmail) {
+        console.warn('contact email delivery failed', failedEmail);
+        toast({ title: 'Request saved', description: 'Your request was saved, but one email notification could not be sent.', variant: 'destructive' });
+      }
 
       setSubmitted({ ticketId: inserted.ticket_id, category, expectedResponse: cat.responseTime });
       window.scrollTo({ top: 0, behavior: 'smooth' });
