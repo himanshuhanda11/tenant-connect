@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { useAuth } from '@/contexts/AuthContext';
 import { useContactsCrmSearch, CrmSearchFilters, DEFAULT_CRM_FILTERS } from '@/hooks/useContactsCrmSearch';
 import { useContacts } from '@/hooks/useContacts';
 import { useAttributeKeys } from '@/hooks/useContactAttributes';
@@ -8,7 +9,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Contact } from '@/types/contact';
 import { SmartView, DEFAULT_SMART_VIEWS, Segment, SegmentFilters } from '@/types/segment';
-import { ContactsHeader } from '@/components/contacts/ContactsHeader';
+import { ContactsCrmHeader } from '@/components/contacts/ContactsCrmHeader';
+import { ContactsAnalyticsCards } from '@/components/contacts/ContactsAnalyticsCards';
+import { ContactsQuickFilters, type ContactsViewMode, type ContactsQuickFilter } from '@/components/contacts/ContactsQuickFilters';
 import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { ContactsAdvancedFilters } from '@/components/contacts/ContactsAdvancedFilters';
 import { ContactsTable } from '@/components/contacts/ContactsTable';
@@ -19,6 +22,7 @@ import { AddContactModal } from '@/components/contacts/AddContactModal';
 
 export default function Contacts() {
   const { currentTenant } = useTenant();
+  const { user } = useAuth();
 
   // CRM search (primary data source)
   const {
@@ -55,6 +59,10 @@ export default function Contacts() {
   const [showAddContact, setShowAddContact] = useState(false);
   const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
   const [contactDetailsMap, setContactDetailsMap] = useState<Record<string, Partial<Contact>>>({});
+  const [viewMode, setViewMode] = useState<ContactsViewMode>('table');
+  const [quickFilter, setQuickFilter] = useState<ContactsQuickFilter>('all');
+  const [sortMode, setSortMode] = useState<string>('recent');
+  const [lastSyncAt, setLastSyncAt] = useState<Date>(new Date());
 
   // Enrich CRM rows with full contact details (country, source, language, opt-in, etc.)
   useEffect(() => {
@@ -323,20 +331,89 @@ export default function Contacts() {
 
   const totalCount = crmTotalCount;
 
+  // ---- Quick-filter (client-side, applied to current page) ----
+  const visibleContacts = useMemo(() => {
+    if (quickFilter === 'all') return contactsForTable;
+    return contactsForTable.filter((c) => {
+      const summary = inboxSummaries[c.id];
+      switch (quickFilter) {
+        case 'hot':
+          return (
+            c.priority_level === 'high' ||
+            (c.tags || []).some((t: any) => /hot/i.test(t?.tag?.name || ''))
+          );
+        case 'engaged': {
+          const ls = summary?.lead_state as string | undefined;
+          return ls === 'engaged' || ls === 'qualified' || ls === 'claimed';
+        }
+        case 'mine':
+          return !!user?.id && summary?.assigned_to === user.id;
+        case 'unassigned':
+          return !summary?.assigned_to && !summary?.claimed_by;
+        default:
+          return true;
+      }
+    });
+  }, [contactsForTable, inboxSummaries, quickFilter, user?.id]);
+
+  const quickFilterCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: contactsForTable.length };
+    let hot = 0, engaged = 0, mine = 0, unassigned = 0;
+    contactsForTable.forEach((c) => {
+      const s = inboxSummaries[c.id];
+      if (c.priority_level === 'high' || (c.tags || []).some((t: any) => /hot/i.test(t?.tag?.name || ''))) hot++;
+      const ls = s?.lead_state as string | undefined;
+      if (ls === 'engaged' || ls === 'qualified' || ls === 'claimed') engaged++;
+      if (user?.id && s?.assigned_to === user.id) mine++;
+      if (!s?.assigned_to && !s?.claimed_by) unassigned++;
+    });
+    counts.hot = hot; counts.engaged = engaged; counts.mine = mine; counts.unassigned = unassigned;
+    return counts;
+  }, [contactsForTable, inboxSummaries, user?.id]);
+
+  const activeContactsApprox = useMemo(
+    () => contactsForTable.filter((c) => c.mau_status === 'active').length,
+    [contactsForTable]
+  );
+  const engagedContactsApprox = quickFilterCounts.engaged || 0;
+
+  const handleRefreshAll = () => {
+    setLastSyncAt(new Date());
+    fetchCrmContacts();
+  };
+
   return (
     <DashboardLayout>
       <div className="flex flex-col h-[calc(100vh-4rem)]">
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-muted/10">
 
-
-          <ContactsHeader
+          <ContactsCrmHeader
             totalCount={totalCount}
             loading={crmLoading}
-            onRefresh={fetchCrmContacts}
-            onExport={handleExport}
+            lastSyncAt={lastSyncAt}
+            onRefresh={handleRefreshAll}
+            onExportCsv={handleExport}
             onCreateSegment={() => setShowCreateSegment(true)}
             onAddContact={() => setShowAddContact(true)}
+          />
+
+          <ContactsAnalyticsCards
+            totalContacts={totalCount}
+            activeContacts={activeContactsApprox}
+            engagedContacts={engagedContactsApprox}
+            segmentsCount={segments.length}
+            tagsCount={availableTags.length}
+          />
+
+          <ContactsQuickFilters
+            view={viewMode}
+            onViewChange={setViewMode}
+            quickFilter={quickFilter}
+            onQuickFilterChange={setQuickFilter}
+            counts={quickFilterCounts as any}
+            sort={sortMode}
+            onSortChange={setSortMode}
           />
 
           <ContactsAdvancedFilters
@@ -352,26 +429,33 @@ export default function Contacts() {
           />
 
           <div className="flex-1 overflow-auto">
-            <ContactsTable
-              contacts={contactsForTable}
-              loading={crmLoading}
-              totalCount={totalCount}
-              page={crmPage + 1}
-              pageSize={crmPageSize}
-              onPageChange={(p) => setCrmPage(p - 1)}
-              onSelectContact={handleContactSelect}
-              selectedContactId={selectedContact?.id}
-              selectedContactIds={selectedContactIds}
-              onToggleSelection={toggleContactSelection}
-              onSelectAll={handleSelectAll}
-              inboxSummaries={inboxSummaries}
-            />
+            {viewMode === 'kanban' ? (
+              <div className="m-4 rounded-2xl border border-dashed border-border/60 p-12 text-center text-sm text-muted-foreground">
+                Kanban view is coming in the next step. Use Table or Compact for now.
+              </div>
+            ) : (
+              <ContactsTable
+                contacts={visibleContacts}
+                loading={crmLoading}
+                totalCount={quickFilter === 'all' ? totalCount : visibleContacts.length}
+                page={crmPage + 1}
+                pageSize={crmPageSize}
+                onPageChange={(p) => setCrmPage(p - 1)}
+                onSelectContact={handleContactSelect}
+                selectedContactId={selectedContact?.id}
+                selectedContactIds={selectedContactIds}
+                onToggleSelection={toggleContactSelection}
+                onSelectAll={handleSelectAll}
+                inboxSummaries={inboxSummaries}
+              />
+            )}
 
             <div className="hidden md:block px-4 pb-4">
               <QuickGuide {...quickGuides.contacts} />
             </div>
           </div>
         </div>
+
 
         <ContactDetailDrawer
           contact={selectedContact}
