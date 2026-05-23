@@ -489,16 +489,21 @@ export default function Contacts() {
         </div>
 
 
-        <ContactDetailDrawer
-          contact={selectedContact}
-          open={drawerOpen}
-          onClose={() => { setDrawerOpen(false); setSelectedContact(null); }}
-          onUpdate={updateContact}
-          onAddTag={addTag}
-          onRemoveTag={removeTag}
-          onAssignAgent={assignAgent}
-          onDelete={handleDeleteContact}
-        />
+        {/* Drawer is lazy-loaded; only mount once a contact has actually been opened */}
+        {(drawerOpen || selectedContact) && (
+          <Suspense fallback={null}>
+            <ContactDetailDrawer
+              contact={selectedContact}
+              open={drawerOpen}
+              onClose={() => { setDrawerOpen(false); setSelectedContact(null); }}
+              onUpdate={updateContact}
+              onAddTag={addTag}
+              onRemoveTag={removeTag}
+              onAssignAgent={assignAgent}
+              onDelete={handleDeleteContact}
+            />
+          </Suspense>
+        )}
       </div>
 
       <ContactsBulkActionsBar
