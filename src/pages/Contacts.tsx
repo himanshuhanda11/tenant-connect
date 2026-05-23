@@ -365,6 +365,14 @@ export default function Contacts() {
       Showing <span className="font-semibold text-foreground tabular-nums">{pageStart.toLocaleString()}</span>–<span className="font-semibold text-foreground tabular-nums">{pageEnd.toLocaleString()}</span> of <span className="font-semibold text-foreground tabular-nums">{totalCount.toLocaleString()}</span> contacts
     </span>
   );
+  const handleCrmPageChange = (nextPage: number) => {
+    const clamped = Math.min(Math.max(nextPage, 0), totalPages - 1);
+    if (clamped === crmPage) return;
+    setSelectedContactIds([]);
+    setCrmPage(clamped);
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  };
+
   const paginationControls = (
     <div className="flex items-center justify-between gap-2 sm:justify-end">
       <Button
@@ -392,14 +400,6 @@ export default function Contacts() {
       </Button>
     </div>
   );
-
-  const handleCrmPageChange = (nextPage: number) => {
-    const clamped = Math.min(Math.max(nextPage, 0), totalPages - 1);
-    if (clamped === crmPage) return;
-    setSelectedContactIds([]);
-    setCrmPage(clamped);
-    window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
-  };
 
   // ---- Quick-filter (client-side, applied to current page) ----
   const visibleContacts = useMemo(() => {
