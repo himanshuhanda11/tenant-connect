@@ -57,6 +57,10 @@ export default function Contacts() {
   const [showAddContact, setShowAddContact] = useState(false);
   const [viewCounts, setViewCounts] = useState<Record<string, number>>({});
   const [contactDetailsMap, setContactDetailsMap] = useState<Record<string, Partial<Contact>>>({});
+  const [viewMode, setViewMode] = useState<ContactsViewMode>('table');
+  const [quickFilter, setQuickFilter] = useState<ContactsQuickFilter>('all');
+  const [sortMode, setSortMode] = useState<string>('recent');
+  const [lastSyncAt, setLastSyncAt] = useState<Date>(new Date());
 
   // Enrich CRM rows with full contact details (country, source, language, opt-in, etc.)
   useEffect(() => {
