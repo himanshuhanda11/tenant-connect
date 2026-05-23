@@ -103,6 +103,20 @@ export function useDeals(pipelineId: string | null) {
 
   useEffect(() => { refetch(); }, [refetch]);
 
+  // Realtime sync: any insert/update/delete on deals for this pipeline triggers refetch
+  useEffect(() => {
+    if (!tenantId || !pipelineId) return;
+    const channel = supabase
+      .channel(`crm-deals-${pipelineId}`)
+      .on(
+        'postgres_changes' as any,
+        { event: '*', schema: 'public', table: 'deals', filter: `pipeline_id=eq.${pipelineId}` },
+        () => { refetch(); }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [tenantId, pipelineId, refetch]);
+
   const moveDeal = useCallback(async (dealId: string, newStageId: string) => {
     setDeals(prev => prev.map(d => d.id === dealId ? { ...d, stage_id: newStageId } : d));
     const { error } = await supabase
