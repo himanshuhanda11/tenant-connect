@@ -60,7 +60,11 @@ export function AddDealDialog({ open, onOpenChange, stages, defaultStageId, pipe
             <Input id="d-title" autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Acme Corp - WhatsApp API" />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="d-company">Company / contact</Label>
+            <Label>Link contact (optional)</Label>
+            <ContactPicker value={contact} onChange={setContact} placeholder="Search WhatsApp contacts..." />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="d-company">Company</Label>
             <Input id="d-company" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Optional" />
           </div>
           <div className="grid grid-cols-2 gap-3">
