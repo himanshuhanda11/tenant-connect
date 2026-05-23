@@ -145,10 +145,10 @@ export default function CrmPipeline() {
           />
         ) : view === 'table' ? (
           <TableView deals={filtered} stages={stages} onClick={(d) => { setSelected(d); setDrawerOpen(true); }} />
+        ) : view === 'activity' ? (
+          <ActivityView deals={deals} onDealClick={(d) => { setSelected(d); setDrawerOpen(true); }} />
         ) : (
-          <div className="rounded-2xl border border-dashed border-border/60 p-12 text-center text-sm text-muted-foreground">
-            {view === 'activity' ? 'Activity timeline view — coming soon.' : 'Pipeline chart view — coming soon.'}
-          </div>
+          <ChartView deals={filtered} stages={stages} currency={currency} />
         )}
       </div>
 
