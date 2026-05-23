@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, CartesianGrid, AreaChart, Area } from 'recharts';
 import { format, startOfWeek, addDays, subWeeks } from 'date-fns';
+import { useCrmOwners } from '@/hooks/useCrmExtras';
 import type { Deal, PipelineStage } from '@/types/crm';
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function ChartView({ deals, stages, currency }: Props) {
+  const { owners } = useCrmOwners();
   const fmt = (n: number) =>
     new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 0 }).format(n);
 
