@@ -179,30 +179,46 @@ export function useContactsCrmSearch() {
     fetchContacts(!!entry);
   }, [fetchContacts, cacheKey]);
 
-  // Realtime — debounced background refetch (don't spam network on bursts)
+  // Realtime — debounced background refetch across all tables that drive Kanban columns
   useEffect(() => {
     if (!currentTenant?.id) return;
     let timer: ReturnType<typeof setTimeout> | null = null;
     const tenantId = currentTenant.id;
+    const schedule = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        invalidateContactsCrmCache(tenantId);
+        fetchContacts(true);
+      }, 1200);
+    };
     const channel = supabase
-      .channel('crm_search_realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'contact_inbox_summary', filter: `tenant_id=eq.${tenantId}` },
-        () => {
-          if (timer) clearTimeout(timer);
-          timer = setTimeout(() => {
-            invalidateContactsCrmCache(tenantId);
-            fetchContacts(true);
-          }, 1500);
-        }
-      )
+      .channel(`crm_search_realtime_${tenantId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contact_inbox_summary', filter: `tenant_id=eq.${tenantId}` }, schedule)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contacts', filter: `tenant_id=eq.${tenantId}` }, schedule)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations', filter: `tenant_id=eq.${tenantId}` }, schedule)
       .subscribe();
+
+    // Auto-refresh fallback every 30s (catches anything realtime might miss)
+    const interval = setInterval(() => {
+      invalidateContactsCrmCache(tenantId);
+      fetchContacts(true);
+    }, 30_000);
+
+    // Refresh when tab regains focus
+    const onFocus = () => {
+      invalidateContactsCrmCache(tenantId);
+      fetchContacts(true);
+    };
+    window.addEventListener('focus', onFocus);
+
     return () => {
       if (timer) clearTimeout(timer);
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
       supabase.removeChannel(channel);
     };
   }, [currentTenant?.id, fetchContacts]);
+
 
   const resetFilters = () => {
     setFilters(DEFAULT_CRM_FILTERS);
