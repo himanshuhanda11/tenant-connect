@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { useContactsCrmSearch, CrmSearchFilters, DEFAULT_CRM_FILTERS } from '@/hooks/useContactsCrmSearch';
@@ -15,10 +15,14 @@ import { ContactsQuickFilters, type ContactsViewMode, type ContactsQuickFilter }
 import { QuickGuide, quickGuides } from '@/components/help/QuickGuide';
 import { ContactsAdvancedFilters } from '@/components/contacts/ContactsAdvancedFilters';
 import { ContactsTable } from '@/components/contacts/ContactsTable';
-import { ContactDetailDrawer } from '@/components/contacts/ContactDetailDrawer';
 import { ContactsBulkActionsBar } from '@/components/contacts/ContactsBulkActionsBar';
 import { CreateSegmentModal } from '@/components/contacts/CreateSegmentModal';
 import { AddContactModal } from '@/components/contacts/AddContactModal';
+
+// Lazy-load the heavy detail drawer (~834 lines with nested tabs) — perf optimization
+const ContactDetailDrawer = lazy(() =>
+  import('@/components/contacts/ContactDetailDrawer').then((m) => ({ default: m.ContactDetailDrawer }))
+);
 
 export default function Contacts() {
   const { currentTenant } = useTenant();
