@@ -68,6 +68,25 @@ export default function Contacts() {
   const [sortMode, setSortMode] = useState<string>('recent');
   const [lastSyncAt, setLastSyncAt] = useState<Date>(new Date());
 
+  // Local-only search input (immediate UI) → debounced into crmFilters.search to avoid
+  // firing a Supabase query per keystroke. Cleans up timer on unmount.
+  const [searchInput, setSearchInput] = useState<string>(crmFilters.search || '');
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchInput(value);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      setCrmFilters((prev) => ({ ...prev, search: value }));
+      setCrmPage(0);
+    }, 300);
+  }, [setCrmFilters, setCrmPage]);
+
+  useEffect(() => () => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+  }, []);
+
+
   // Enrich CRM rows with full contact details (country, source, language, opt-in, etc.)
   useEffect(() => {
     if (!currentTenant?.id || crmContacts.length === 0) return;
