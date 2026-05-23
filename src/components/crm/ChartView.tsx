@@ -48,6 +48,43 @@ export function ChartView({ deals, stages, currency }: Props) {
     return buckets;
   }, [deals]);
 
+  // Per-stage conversion: % of deals reaching this stage that progressed past it (or won)
+  const stageConversion = useMemo(() => {
+    const ordered = [...stages].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+    const stageIndex: Record<string, number> = {};
+    ordered.forEach((s, i) => { stageIndex[s.id] = i; });
+    return ordered.map((s, i) => {
+      // entered = current deals at or past this stage, plus all won deals (assumed traversed)
+      const entered = deals.filter(d => {
+        if (d.status === 'won') return true;
+        const idx = stageIndex[d.stage_id];
+        return typeof idx === 'number' && idx >= i;
+      }).length;
+      const advanced = deals.filter(d => {
+        if (d.status === 'won') return true;
+        const idx = stageIndex[d.stage_id];
+        return typeof idx === 'number' && idx > i;
+      }).length;
+      const rate = entered > 0 ? Math.round((advanced / entered) * 100) : 0;
+      return { name: s.name, color: s.color, entered, advanced, rate };
+    });
+  }, [deals, stages]);
+
+  // Owner workload: deals per assigned owner (open + value)
+  const ownerWorkload = useMemo(() => {
+    const map = new Map<string, { name: string; open: number; won: number; value: number }>();
+    deals.forEach(d => {
+      const key = d.owner_id || '__unassigned__';
+      const owner = owners.find(o => o.user_id === d.owner_id);
+      const name = d.owner_id ? (owner?.full_name || owner?.email || 'Member') : 'Unassigned';
+      const entry = map.get(key) || { name, open: 0, won: 0, value: 0 };
+      if (d.status === 'open') { entry.open += 1; entry.value += Number(d.value || 0); }
+      if (d.status === 'won') entry.won += 1;
+      map.set(key, entry);
+    });
+    return Array.from(map.values()).sort((a, b) => (b.open + b.won) - (a.open + a.won)).slice(0, 8);
+  }, [deals, owners]);
+
   const totalOpen = deals.filter(d => d.status === 'open').length;
   const totalWon = deals.filter(d => d.status === 'won').length;
   const totalLost = deals.filter(d => d.status === 'lost').length;
