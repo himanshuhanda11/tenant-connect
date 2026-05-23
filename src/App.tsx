@@ -51,6 +51,7 @@ const InboxPage = lazyWithRetry(() => import("./pages/InboxPage"));
 const Mail = lazyWithRetry(() => import("./pages/Mail"));
 const InboxCRMDashboard = lazyWithRetry(() => import("./pages/inbox/InboxCRMDashboard"));
 const Contacts = lazyWithRetry(() => import("./pages/Contacts"));
+const CrmPipeline = lazyWithRetry(() => import("./pages/crm/CrmPipeline"));
 const ContactSegments = lazyWithRetry(() => import("./pages/ContactSegments"));
 const ContactImports = lazyWithRetry(() => import("./pages/ContactImports"));
 const ContactDuplicates = lazyWithRetry(() => import("./pages/ContactDuplicates"));
@@ -296,6 +297,9 @@ const App = () => (
                     <Route path="/inbox/spam" element={<InboxPage />} />
                     <Route path="/inbox/:id" element={<InboxPage />} />
                     <Route path="/contacts" element={<Contacts />} />
+                    <Route path="/crm" element={<Navigate to="/crm/pipelines" replace />} />
+                    <Route path="/crm/pipelines" element={<CrmPipeline />} />
+                    <Route path="/crm/deals" element={<CrmPipeline />} />
                     <Route path="/qualified-leads" element={<QualifiedLeads />} />
                     <Route path="/contacts/segments" element={<ContactSegments />} />
                     <Route path="/contacts/imports" element={<ContactImports />} />

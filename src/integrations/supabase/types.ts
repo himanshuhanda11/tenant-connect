@@ -3600,6 +3600,279 @@ export type Database = {
           },
         ]
       }
+      crm_saved_views: {
+        Row: {
+          created_at: string
+          filters: Json
+          group_by: string | null
+          id: string
+          is_default: boolean
+          is_shared: boolean
+          name: string
+          sort: Json
+          tenant_id: string
+          updated_at: string
+          user_id: string
+          view_type: string
+        }
+        Insert: {
+          created_at?: string
+          filters?: Json
+          group_by?: string | null
+          id?: string
+          is_default?: boolean
+          is_shared?: boolean
+          name: string
+          sort?: Json
+          tenant_id: string
+          updated_at?: string
+          user_id: string
+          view_type?: string
+        }
+        Update: {
+          created_at?: string
+          filters?: Json
+          group_by?: string | null
+          id?: string
+          is_default?: boolean
+          is_shared?: boolean
+          name?: string
+          sort?: Json
+          tenant_id?: string
+          updated_at?: string
+          user_id?: string
+          view_type?: string
+        }
+        Relationships: []
+      }
+      deal_activities: {
+        Row: {
+          activity_type: Database["public"]["Enums"]["deal_activity_type"]
+          actor_id: string | null
+          content: string | null
+          created_at: string
+          deal_id: string
+          id: string
+          metadata: Json
+          tenant_id: string
+        }
+        Insert: {
+          activity_type: Database["public"]["Enums"]["deal_activity_type"]
+          actor_id?: string | null
+          content?: string | null
+          created_at?: string
+          deal_id: string
+          id?: string
+          metadata?: Json
+          tenant_id: string
+        }
+        Update: {
+          activity_type?: Database["public"]["Enums"]["deal_activity_type"]
+          actor_id?: string | null
+          content?: string | null
+          created_at?: string
+          deal_id?: string
+          id?: string
+          metadata?: Json
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_activities_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_notes: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string
+          deal_id: string
+          id: string
+          is_pinned: boolean
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string
+          deal_id: string
+          id?: string
+          is_pinned?: boolean
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string
+          deal_id?: string
+          id?: string
+          is_pinned?: boolean
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_notes_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_tasks: {
+        Row: {
+          assignee_id: string | null
+          completed_at: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string | null
+          deal_id: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          status: Database["public"]["Enums"]["deal_task_status"]
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["deal_task_status"]
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assignee_id?: string | null
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["deal_task_status"]
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_tasks_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deals: {
+        Row: {
+          company_name: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          expected_close_date: string | null
+          id: string
+          last_activity_at: string
+          lead_source: string | null
+          metadata: Json
+          notes_count: number
+          owner_id: string | null
+          pipeline_id: string
+          position: number
+          priority: Database["public"]["Enums"]["deal_priority"]
+          stage_id: string
+          status: Database["public"]["Enums"]["deal_status"]
+          tags: string[]
+          tenant_id: string
+          title: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          company_name?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          expected_close_date?: string | null
+          id?: string
+          last_activity_at?: string
+          lead_source?: string | null
+          metadata?: Json
+          notes_count?: number
+          owner_id?: string | null
+          pipeline_id: string
+          position?: number
+          priority?: Database["public"]["Enums"]["deal_priority"]
+          stage_id: string
+          status?: Database["public"]["Enums"]["deal_status"]
+          tags?: string[]
+          tenant_id: string
+          title: string
+          updated_at?: string
+          value?: number
+        }
+        Update: {
+          company_name?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          expected_close_date?: string | null
+          id?: string
+          last_activity_at?: string
+          lead_source?: string | null
+          metadata?: Json
+          notes_count?: number
+          owner_id?: string | null
+          pipeline_id?: string
+          position?: number
+          priority?: Database["public"]["Enums"]["deal_priority"]
+          stage_id?: string
+          status?: Database["public"]["Enums"]["deal_status"]
+          tags?: string[]
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "pipelines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_accounts: {
         Row: {
           address: string
@@ -8644,6 +8917,89 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pipeline_stages: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          is_lost: boolean
+          is_won: boolean
+          name: string
+          pipeline_id: string
+          probability: number
+          stage_order: number
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_lost?: boolean
+          is_won?: boolean
+          name: string
+          pipeline_id: string
+          probability?: number
+          stage_order?: number
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_lost?: boolean
+          is_won?: boolean
+          name?: string
+          pipeline_id?: string
+          probability?: number
+          stage_order?: number
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipeline_stages_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "pipelines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pipelines: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       plans: {
         Row: {
@@ -19194,6 +19550,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      crm_ensure_default_pipeline: {
+        Args: { _tenant_id: string }
+        Returns: string
+      }
+      crm_is_workspace_member: {
+        Args: { _tenant_id: string; _user_id: string }
+        Returns: boolean
+      }
       deduct_message_credit: {
         Args: {
           p_description?: string
@@ -19785,6 +20149,19 @@ export type Database = {
         | "cancelled"
       conversation_status: "open" | "closed" | "expired"
       cooldown_scope: "workflow" | "node" | "action"
+      deal_activity_type:
+        | "stage_change"
+        | "note"
+        | "call"
+        | "email"
+        | "whatsapp"
+        | "assignment"
+        | "task"
+        | "created"
+        | "status_change"
+      deal_priority: "low" | "normal" | "high" | "urgent"
+      deal_status: "open" | "won" | "lost"
+      deal_task_status: "pending" | "done" | "cancelled"
       email_conversation_status: "open" | "pending" | "closed" | "spam"
       email_direction: "inbound" | "outbound"
       email_message_status:
@@ -20363,6 +20740,20 @@ export const Constants = {
       ],
       conversation_status: ["open", "closed", "expired"],
       cooldown_scope: ["workflow", "node", "action"],
+      deal_activity_type: [
+        "stage_change",
+        "note",
+        "call",
+        "email",
+        "whatsapp",
+        "assignment",
+        "task",
+        "created",
+        "status_change",
+      ],
+      deal_priority: ["low", "normal", "high", "urgent"],
+      deal_status: ["open", "won", "lost"],
+      deal_task_status: ["pending", "done", "cancelled"],
       email_conversation_status: ["open", "pending", "closed", "spam"],
       email_direction: ["inbound", "outbound"],
       email_message_status: [

@@ -49,6 +49,7 @@ const mainMenuItems: MenuItem[] = [
 ];
 
 const crmMenuItems: MenuItem[] = [
+  { title: 'Sales Pipeline', url: '/crm/pipelines', icon: TrendingUp, key: 'crm-pipelines' },
   { title: 'Contacts', url: '/contacts', icon: Contact, key: 'contacts', docUrl: '/help/contacts-tags' },
   { title: 'Tags', url: '/tags', icon: Tag, key: 'tags', docUrl: '/help/contacts-tags' },
   { title: 'Attributes', url: '/user-attributes', icon: ListFilter, key: 'user-attributes', docUrl: '/help/contacts-tags' },
