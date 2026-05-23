@@ -18,6 +18,7 @@ import { ContactsTable } from '@/components/contacts/ContactsTable';
 import { ContactsBulkActionsBar } from '@/components/contacts/ContactsBulkActionsBar';
 import { CreateSegmentModal } from '@/components/contacts/CreateSegmentModal';
 import { AddContactModal } from '@/components/contacts/AddContactModal';
+import { ContactsKanbanView } from '@/components/contacts/ContactsKanbanView';
 
 // Lazy-load the heavy detail drawer (~834 lines with nested tabs) — perf optimization
 const ContactDetailDrawer = lazy(() =>
@@ -461,9 +462,13 @@ export default function Contacts() {
 
           <div className="flex-1 overflow-auto px-4 md:px-8 pb-6 pt-4">
             {viewMode === 'kanban' ? (
-              <div className="rounded-2xl border border-dashed border-border/60 bg-card/50 p-12 text-center text-sm text-muted-foreground">
-                Kanban view is coming in the next step. Use Table or Compact for now.
-              </div>
+              <ContactsKanbanView
+                contacts={visibleContacts}
+                loading={crmLoading}
+                inboxSummaries={inboxSummaries}
+                onSelectContact={handleContactSelect}
+                selectedContactId={selectedContact?.id}
+              />
             ) : (
               <div className="rounded-2xl border border-border/60 bg-card shadow-[0_1px_2px_rgba(0,0,0,0.04)] overflow-hidden">
                 <ContactsTable
