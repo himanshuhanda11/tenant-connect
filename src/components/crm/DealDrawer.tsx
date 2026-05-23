@@ -75,10 +75,13 @@ export function DealDrawer({ deal, open, onOpenChange, stages, onUpdate, onDelet
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="mx-5 mt-3 bg-muted/50 grid grid-cols-4 h-9">
+          <TabsList className="mx-5 mt-3 bg-muted/50 grid grid-cols-5 h-9">
             <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
             <TabsTrigger value="activity" className="text-xs">Activity</TabsTrigger>
             <TabsTrigger value="notes" className="text-xs">Notes</TabsTrigger>
+            <TabsTrigger value="tasks" className="text-xs gap-1">
+              <ListTodo className="h-3 w-3" /> Tasks
+            </TabsTrigger>
             <TabsTrigger value="ai" className="text-xs gap-1">
               <Sparkles className="h-3 w-3" /> AI
             </TabsTrigger>
