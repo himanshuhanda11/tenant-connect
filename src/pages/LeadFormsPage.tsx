@@ -49,7 +49,7 @@ type PageSubState = {
 };
 
 export default function LeadFormsPage() {
-  const [activeTab, setActiveTab] = useState('rules');
+  const [activeTab, setActiveTab] = useState('leads');
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [pageStates, setPageStates] = useState<Record<string, PageSubState>>({});
   const [syncing, setSyncing] = useState(false);
@@ -551,7 +551,7 @@ export default function LeadFormsPage() {
                                   <>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={() => setBackfillForm({ form_id: form.form_id, form_name: form.form_name || form.form_id, lead_count: form.lead_count })}>
-                                      <ArrowDownToLine className="h-3.5 w-3.5 mr-2" /> Backfill {form.lead_count} leads
+                                      <ArrowDownToLine className="h-3.5 w-3.5 mr-2" /> Import leads from Meta
                                     </DropdownMenuItem>
                                   </>
                                 )}
