@@ -4,6 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LeadFormRulesPanel } from '@/components/lead-forms/LeadFormRulesPanel';
 import { WebhookHealthPanel } from '@/components/lead-forms/WebhookHealthPanel';
 import { LeadEventsLog } from '@/components/lead-forms/LeadEventsLog';
+import { LeadRecordsTable } from '@/components/lead-forms/LeadRecordsTable';
+
 import { SEO } from '@/components/seo';
 import {
   FileText, Zap, Activity, ScrollText, ArrowDownToLine, AlertTriangle, CheckCircle2,
