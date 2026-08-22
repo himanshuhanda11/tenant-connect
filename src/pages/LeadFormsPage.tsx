@@ -110,14 +110,13 @@ export default function LeadFormsPage() {
     return null;
   }, [metaAccount, isTokenExpired, hasPageManageAds, hasLeadsRetrieval, hasPageReadEngagement, hasPage]);
 
-  // Group forms by page — restricted to the Page selected during Meta connection
+  // Group forms by page — every Page that has synced lead forms in this workspace
   const connectedPageId = metaAccount?.facebook_page_id || null;
   const pageGroups = useMemo(() => {
     const map = new Map<string, { page_id: string; page_name: string; forms: typeof forms; subscribed: boolean; lead_count: number; last_lead_at: string | null }>();
     forms.forEach((f) => {
       if (!f.page_id) return;
-      // Only show data for the page that was selected during Meta Ads connection
-      if (connectedPageId && f.page_id !== connectedPageId) return;
+
       const existing = map.get(f.page_id);
       const lastLead = f.last_lead_at ? new Date(f.last_lead_at).getTime() : 0;
       if (existing) {
