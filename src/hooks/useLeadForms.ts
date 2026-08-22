@@ -140,14 +140,15 @@ export function useLeadForms() {
   const fetchForms = useCallback(async () => {
     if (!currentTenant) return;
     if (pageLoading) return;
-    if (!connectedPageId) { setForms([]); setLoading(false); return; }
     setLoading(true);
+    // Show every synced form for this workspace. Filtering strictly to the Page picked during
+    // the Meta connection hid forms that live on other Pages the same account administers.
     const { data, error } = await supabase
       .from('meta_lead_forms')
       .select('*')
       .eq('tenant_id', currentTenant.id)
-      .eq('page_id', connectedPageId)
       .order('created_at', { ascending: false });
+
 
     if (!error && data) setForms(data as any);
     setLoading(false);
@@ -300,26 +301,22 @@ export function useLeadFormRules() {
 
 export function useLeadEvents() {
   const { currentTenant } = useTenant();
-  const { pageId: connectedPageId, loading: pageLoading } = useConnectedPageId();
   const [events, setEvents] = useState<LeadEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchEvents = useCallback(async (limit = 100) => {
     if (!currentTenant) return;
-    if (pageLoading) return;
-    if (!connectedPageId) { setEvents([]); setLoading(false); return; }
     setLoading(true);
     const { data, error } = await supabase
       .from('lead_events')
       .select('*')
       .eq('tenant_id', currentTenant.id)
-      .eq('page_id', connectedPageId)
       .order('created_at', { ascending: false })
       .limit(limit);
 
     if (!error && data) setEvents(data as any);
     setLoading(false);
-  }, [currentTenant, connectedPageId, pageLoading]);
+  }, [currentTenant]);
 
   useEffect(() => { fetchEvents(); }, [fetchEvents]);
 
@@ -328,27 +325,24 @@ export function useLeadEvents() {
 
 export function useWebhookHealth() {
   const { currentTenant } = useTenant();
-  const { pageId: connectedPageId, loading: pageLoading } = useConnectedPageId();
   const [subscriptions, setSubscriptions] = useState<WebhookSubscription[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchHealth = useCallback(async () => {
     if (!currentTenant) return;
-    if (pageLoading) return;
-    if (!connectedPageId) { setSubscriptions([]); setLoading(false); return; }
     setLoading(true);
     const { data, error } = await supabase
       .from('meta_webhook_subscriptions')
       .select('*')
-      .eq('tenant_id', currentTenant.id)
-      .eq('page_id', connectedPageId);
+      .eq('tenant_id', currentTenant.id);
 
     if (!error && data) setSubscriptions(data as any);
     setLoading(false);
-  }, [currentTenant, connectedPageId, pageLoading]);
+  }, [currentTenant]);
 
   useEffect(() => { fetchHealth(); }, [fetchHealth]);
 
   return { subscriptions, loading, refetch: fetchHealth };
 }
+
 
