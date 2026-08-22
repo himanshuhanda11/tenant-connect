@@ -579,7 +579,10 @@ export default function LeadFormsPage() {
 
         {/* Tabs (advanced) */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-muted/50 h-10 p-1 w-full sm:w-auto grid grid-cols-3 sm:flex">
+          <TabsList className="bg-muted/50 h-10 p-1 w-full sm:w-auto grid grid-cols-4 sm:flex">
+            <TabsTrigger value="leads" className="text-xs sm:text-sm gap-1.5">
+              <Inbox className="h-3.5 w-3.5 hidden sm:block" /> Leads
+            </TabsTrigger>
             <TabsTrigger value="rules" className="text-xs sm:text-sm gap-1.5">
               <Zap className="h-3.5 w-3.5 hidden sm:block" /> Rules
             </TabsTrigger>
@@ -591,10 +594,12 @@ export default function LeadFormsPage() {
             </TabsTrigger>
           </TabsList>
 
+          <TabsContent value="leads" className="mt-4"><LeadRecordsTable /></TabsContent>
           <TabsContent value="rules" className="mt-4"><LeadFormRulesPanel /></TabsContent>
           <TabsContent value="webhook" className="mt-4"><WebhookHealthPanel /></TabsContent>
           <TabsContent value="logs" className="mt-4"><LeadEventsLog /></TabsContent>
         </Tabs>
+
       </div>
 
       <AlertDialog open={!!backfillForm} onOpenChange={(open) => !open && !backfilling && setBackfillForm(null)}>
