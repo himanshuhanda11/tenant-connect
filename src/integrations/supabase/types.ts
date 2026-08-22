@@ -19571,6 +19571,7 @@ export type Database = {
         Returns: boolean
       }
       detect_timezone_from_phone: { Args: { phone: string }; Returns: string }
+      email_queue_dispatch: { Args: never; Returns: undefined }
       enforce_plan_access: {
         Args: { p_feature_key: string; p_tenant_id: string }
         Returns: undefined
