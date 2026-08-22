@@ -4,6 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LeadFormRulesPanel } from '@/components/lead-forms/LeadFormRulesPanel';
 import { WebhookHealthPanel } from '@/components/lead-forms/WebhookHealthPanel';
 import { LeadEventsLog } from '@/components/lead-forms/LeadEventsLog';
+import { LeadRecordsTable } from '@/components/lead-forms/LeadRecordsTable';
+
 import { SEO } from '@/components/seo';
 import {
   FileText, Zap, Activity, ScrollText, ArrowDownToLine, AlertTriangle, CheckCircle2,
@@ -47,7 +49,7 @@ type PageSubState = {
 };
 
 export default function LeadFormsPage() {
-  const [activeTab, setActiveTab] = useState('rules');
+  const [activeTab, setActiveTab] = useState('leads');
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [pageStates, setPageStates] = useState<Record<string, PageSubState>>({});
   const [syncing, setSyncing] = useState(false);
@@ -549,7 +551,7 @@ export default function LeadFormsPage() {
                                   <>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={() => setBackfillForm({ form_id: form.form_id, form_name: form.form_name || form.form_id, lead_count: form.lead_count })}>
-                                      <ArrowDownToLine className="h-3.5 w-3.5 mr-2" /> Backfill {form.lead_count} leads
+                                      <ArrowDownToLine className="h-3.5 w-3.5 mr-2" /> Import leads from Meta
                                     </DropdownMenuItem>
                                   </>
                                 )}
@@ -579,7 +581,10 @@ export default function LeadFormsPage() {
 
         {/* Tabs (advanced) */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-muted/50 h-10 p-1 w-full sm:w-auto grid grid-cols-3 sm:flex">
+          <TabsList className="bg-muted/50 h-10 p-1 w-full sm:w-auto grid grid-cols-4 sm:flex">
+            <TabsTrigger value="leads" className="text-xs sm:text-sm gap-1.5">
+              <Inbox className="h-3.5 w-3.5 hidden sm:block" /> Leads
+            </TabsTrigger>
             <TabsTrigger value="rules" className="text-xs sm:text-sm gap-1.5">
               <Zap className="h-3.5 w-3.5 hidden sm:block" /> Rules
             </TabsTrigger>
@@ -591,10 +596,12 @@ export default function LeadFormsPage() {
             </TabsTrigger>
           </TabsList>
 
+          <TabsContent value="leads" className="mt-4"><LeadRecordsTable /></TabsContent>
           <TabsContent value="rules" className="mt-4"><LeadFormRulesPanel /></TabsContent>
           <TabsContent value="webhook" className="mt-4"><WebhookHealthPanel /></TabsContent>
           <TabsContent value="logs" className="mt-4"><LeadEventsLog /></TabsContent>
         </Tabs>
+
       </div>
 
       <AlertDialog open={!!backfillForm} onOpenChange={(open) => !open && !backfilling && setBackfillForm(null)}>
