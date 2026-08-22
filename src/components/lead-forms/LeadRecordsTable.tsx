@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
-import { useConnectedPageId, useLeadForms } from '@/hooks/useLeadForms';
+import { useLeadForms } from '@/hooks/useLeadForms';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +34,6 @@ function pick(data: Record<string, any> | null, keys: string[]): string | null {
 
 export function LeadRecordsTable() {
   const { currentTenant } = useTenant();
-  const { pageId: connectedPageId, loading: pageLoading } = useConnectedPageId();
   const { forms } = useLeadForms();
   const [rows, setRows] = useState<LeadRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,20 +47,19 @@ export function LeadRecordsTable() {
   }, [forms]);
 
   const load = useCallback(async () => {
-    if (!currentTenant?.id || pageLoading) return;
+    if (!currentTenant?.id) return;
     setLoading(true);
-    let query = supabase
+    const query = supabase
       .from('lead_events')
       .select('id, lead_id, form_id, created_at, status, normalized_data')
       .eq('tenant_id', currentTenant.id)
       .order('created_at', { ascending: false })
       .limit(500);
-    if (connectedPageId) query = query.eq('page_id', connectedPageId);
     const { data, error } = await query;
     if (error) toast.error('Failed to load leads');
     setRows((data ?? []) as LeadRow[]);
     setLoading(false);
-  }, [currentTenant?.id, connectedPageId, pageLoading]);
+  }, [currentTenant?.id]);
 
   useEffect(() => { load(); }, [load]);
 
