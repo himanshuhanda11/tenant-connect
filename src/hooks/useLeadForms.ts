@@ -140,14 +140,15 @@ export function useLeadForms() {
   const fetchForms = useCallback(async () => {
     if (!currentTenant) return;
     if (pageLoading) return;
-    if (!connectedPageId) { setForms([]); setLoading(false); return; }
     setLoading(true);
+    // Show every synced form for this workspace. Filtering strictly to the Page picked during
+    // the Meta connection hid forms that live on other Pages the same account administers.
     const { data, error } = await supabase
       .from('meta_lead_forms')
       .select('*')
       .eq('tenant_id', currentTenant.id)
-      .eq('page_id', connectedPageId)
       .order('created_at', { ascending: false });
+
 
     if (!error && data) setForms(data as any);
     setLoading(false);
