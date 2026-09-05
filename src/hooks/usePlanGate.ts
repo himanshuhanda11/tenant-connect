@@ -96,7 +96,14 @@ export function usePlanGate(): PlanGateResult {
   const { members } = useTeamMembers();
 
   const currentPlan = (entitlements?.plan_id ?? 'free') as PlanId;
-  const teamLimit = getTeamMemberLimit(currentPlan);
+  // Prefer the workspace's actual entitlement limit (admins can raise it); fall back to tier default.
+  const rawLimit = entitlements?.limits?.team_members;
+  const teamLimit =
+    rawLimit === 'unlimited'
+      ? Number.POSITIVE_INFINITY
+      : typeof rawLimit === 'number' && rawLimit > 0
+        ? rawLimit
+        : getTeamMemberLimit(currentPlan);
   const teamCount = members.length;
 
   // Enhanced feature check: also consider entitlements features list from DB
