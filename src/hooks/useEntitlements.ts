@@ -53,6 +53,14 @@ export function useEntitlements() {
 
       const planLimits = planData?.limits ?? {};
 
+      // Workspace-level overrides (set by super admins) win over plan defaults.
+      const normalize = (v: any, fallback: any) => {
+        if (v === null || v === undefined) return fallback;
+        if (v === -1) return 'unlimited';
+        return v;
+      };
+      const teamMembers = normalize(data.team_member_limit, planLimits.team_members);
+
       // Map DB columns to the interface, merging platform plan limits
       return {
         workspace_id: data.workspace_id,
@@ -64,18 +72,19 @@ export function useEntitlements() {
           flows: data.monthly_flow_limit,
           ai_credits: data.enable_ai ? 'unlimited' : 0,
           // Merge platform plan resource limits
-          team_members: planLimits.team_members,
-          max_team_members: planLimits.team_members,
+          team_members: teamMembers,
+          max_team_members: teamMembers,
           contacts: planLimits.contacts,
           max_contacts: planLimits.contacts,
-          automations: planLimits.automations,
-          max_automations: planLimits.automations,
+          automations: normalize(data.automation_limit, planLimits.automations),
+          max_automations: normalize(data.automation_limit, planLimits.automations),
           phone_numbers: planLimits.phone_numbers,
           max_phone_numbers: planLimits.phone_numbers,
           tags: planLimits.tags,
           autoforms: planLimits.autoforms,
           custom_attributes: planLimits.custom_attributes,
         },
+
         features: [
           ...(data.enable_ai ? ['ai'] : []),
           ...(data.enable_ads ? ['ads_manager'] : []),
