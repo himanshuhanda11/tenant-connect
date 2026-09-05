@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
     }
 
     // 2b. Verify the workspace's plan allows adding more members
-    const planCheck = await requirePlanAccess(tenantId, "add_team_member");
+    const planCheck = await requirePlanAccess(tenantId, "add_team_member", req);
     if (!planCheck.ok) return planCheck.res;
 
     const admin = getAdminClient();
