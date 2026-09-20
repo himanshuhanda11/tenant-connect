@@ -50,6 +50,11 @@ import {
   Loader2,
   ArrowDown,
   ArrowRight,
+  RefreshCw,
+  Search,
+  Megaphone,
+  MousePointerClick,
+  Radio,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -95,7 +100,7 @@ const ACTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> 
 
 export default function MetaAdsAutomations() {
   const { currentTenant } = useTenant();
-  const { campaigns, connectedAccounts } = useMetaAdAccounts();
+  const { campaigns, connectedAccounts, refetch: refetchMetaAds } = useMetaAdAccounts();
   const { members } = useTeamMembers();
   const { teams } = useTeams();
   const { templates } = useTemplates();
@@ -108,6 +113,9 @@ export default function MetaAdsAutomations() {
   const [editingAutomation, setEditingAutomation] = useState<DbAutomation | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [campaignSearch, setCampaignSearch] = useState('');
+  const [campaignStatus, setCampaignStatus] = useState<'all' | 'active' | 'off'>('all');
+  const [syncing, setSyncing] = useState(false);
 
   // Form state
   const [formName, setFormName] = useState('');
@@ -143,6 +151,107 @@ export default function MetaAdsAutomations() {
   }, [currentTenant?.id]);
 
   useEffect(() => { fetchAutomations(); }, [fetchAutomations]);
+
+  useEffect(() => {
+    const workspaceId = currentTenant?.id;
+    if (!workspaceId) return;
+    const channel = supabase
+      .channel(`meta-automations-live-${workspaceId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'smeksh_meta_ad_automations', filter: `workspace_id=eq.${workspaceId}` }, () => {
+        void fetchAutomations();
+      })
+      .subscribe();
+    const interval = window.setInterval(() => void fetchAutomations(), 30_000);
+    const onFocus = () => void fetchAutomations();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+      void supabase.removeChannel(channel);
+    };
+  }, [currentTenant?.id, fetchAutomations]);
+
+  const handleMetaSync = async () => {
+    if (!currentTenant?.id) return;
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('meta-ads-sync', { body: { tenantId: currentTenant.id } });
+      if (error) throw error;
+      if (data?.error && !data?.success) throw new Error(data.error);
+      await refetchMetaAds();
+      toast.success(`Updated ${data?.synced || 0} campaigns from Meta`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Could not refresh Meta Ads');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const getCampaignAds = (campaign: typeof campaigns[number]) => {
+    const raw = campaign.raw_meta_data as { ads?: Array<{ id?: string; name?: string; status?: string; effective_status?: string; adset_name?: string }> } | null;
+    if (raw?.ads?.length) return raw.ads;
+    return campaign.ad_name ? [{ id: campaign.meta_ad_id || campaign.id, name: campaign.ad_name, status: campaign.status }] : [];
+  };
+
+  const getCampaignDisplayName = (campaign: typeof campaigns[number]) => {
+    const ads = getCampaignAds(campaign);
+    if (ads.length === 1) return ads[0].name || campaign.campaign_name;
+    if (ads.length > 1) return `${ads[0].name || campaign.campaign_name} +${ads.length - 1}`;
+    return campaign.campaign_name;
+  };
+
+  const normalizedStatus = (status?: string | null) => (status || '').toLowerCase();
+  const isActiveCampaign = (campaign: typeof campaigns[number]) => normalizedStatus(campaign.status) === 'active';
+  const campaignAdRows = campaigns.flatMap(campaign => {
+    const ads = getCampaignAds(campaign);
+    if (ads.length === 0) {
+      return [{
+        id: campaign.id,
+        name: campaign.ad_name || campaign.campaign_name,
+        status: campaign.status,
+        campaign,
+      }];
+    }
+    return ads.map((ad, index) => ({
+      id: ad.id || `${campaign.id}-${index}`,
+      name: ad.name || campaign.campaign_name,
+      status: ad.effective_status || ad.status || campaign.status,
+      campaign,
+    }));
+  });
+  const isActiveAd = (status?: string | null) => normalizedStatus(status) === 'active';
+  const activeAds = campaignAdRows.filter(ad => isActiveAd(ad.status));
+  const inactiveAds = campaignAdRows.filter(ad => !isActiveAd(ad.status));
+  const activeAutomations = automations.filter(automation => automation.is_active);
+  const latestSync = campaigns.reduce<string | null>((latest, campaign) => {
+    if (!campaign.last_synced_at) return latest;
+    return !latest || new Date(campaign.last_synced_at) > new Date(latest) ? campaign.last_synced_at : latest;
+  }, null);
+
+  useEffect(() => {
+    const workspaceId = currentTenant?.id;
+    if (!workspaceId || connectedAccounts.length === 0) return;
+
+    const syncInBackground = async () => {
+      const { data, error } = await supabase.functions.invoke('meta-ads-sync', { body: { tenantId: workspaceId } });
+      if (!error && !data?.error) await refetchMetaAds();
+    };
+
+    const lastSyncTime = latestSync ? new Date(latestSync).getTime() : 0;
+    if (Date.now() - lastSyncTime > 5 * 60_000) void syncInBackground();
+    const interval = window.setInterval(() => void syncInBackground(), 5 * 60_000);
+    return () => window.clearInterval(interval);
+  }, [connectedAccounts.length, currentTenant?.id, latestSync]);
+
+  const filteredAds = campaignAdRows
+    .filter(ad => campaignStatus === 'all' || (campaignStatus === 'active' ? isActiveAd(ad.status) : !isActiveAd(ad.status)))
+    .filter(ad => {
+      const query = campaignSearch.trim().toLowerCase();
+      if (!query) return true;
+      return [ad.name, ad.campaign.campaign_name, ad.campaign.adset_name]
+        .some(value => value?.toLowerCase().includes(query));
+    })
+    .sort((a, b) => Number(isActiveAd(b.status)) - Number(isActiveAd(a.status)) || a.name.localeCompare(b.name));
 
   const resetForm = () => {
     setFormName('');
@@ -371,23 +480,96 @@ export default function MetaAdsAutomations() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-5xl mx-auto">
+      <div className="p-3 sm:p-6 space-y-4 sm:space-y-5 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/25">
-              <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+            <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary text-primary-foreground shadow-md">
+              <Zap className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Ad Automations</h1>
               <p className="text-sm text-muted-foreground">Route ad leads to the right agents automatically</p>
             </div>
           </div>
-          <Button onClick={openCreate} className="gap-2 shadow-lg shadow-primary/25 w-full sm:w-auto">
-            <Plus className="h-4 w-4" />
-            Create Automation
-          </Button>
+          <div className="flex w-full gap-2 sm:w-auto">
+            <Button variant="outline" onClick={handleMetaSync} disabled={syncing || connectedAccounts.length === 0} className="gap-2 flex-1 sm:flex-none">
+              <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+              Refresh Meta
+            </Button>
+            <Button onClick={openCreate} className="gap-2 flex-1 sm:flex-none">
+              <Plus className="h-4 w-4" />
+              Create Automation
+            </Button>
+          </div>
         </div>
+
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4 sm:gap-3">
+          {[
+            { label: 'Active ads', value: activeAds.length, icon: Radio, tone: 'text-success bg-success/10' },
+            { label: 'Paused / off', value: inactiveAds.length, icon: Pause, tone: 'text-warning bg-warning/10' },
+            { label: 'Active automations', value: activeAutomations.length, icon: Zap, tone: 'text-primary bg-primary/10' },
+            { label: 'Last Meta update', value: latestSync ? new Date(latestSync).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Not synced', icon: Clock, tone: 'text-info bg-info/10' },
+          ].map(item => (
+            <Card key={item.label} className="border shadow-card">
+              <CardContent className="relative min-h-[76px] p-3 sm:flex sm:items-center sm:gap-3 sm:p-4">
+                <div className={`absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg sm:static sm:h-9 sm:w-9 sm:shrink-0 ${item.tone}`}><item.icon className="h-4 w-4" /></div>
+                <div className="min-w-0 pr-8 sm:pr-0">
+                  <p className="text-[11px] leading-4 text-muted-foreground sm:text-xs">{item.label}</p>
+                  <p className="mt-1 break-words text-base font-semibold leading-5 sm:text-lg" title={String(item.value)}>{item.value}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <Card className="border shadow-card">
+          <CardHeader className="p-4 pb-2">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-base"><Megaphone className="h-4 w-4 text-primary" />Live campaigns</CardTitle>
+                <p className="mt-1 text-xs text-muted-foreground">Current status from your latest Meta sync. Active ads are shown first.</p>
+              </div>
+              <div className="flex gap-1 rounded-lg bg-muted p-1">
+                {(['all', 'active', 'off'] as const).map(status => (
+                  <Button key={status} type="button" variant={campaignStatus === status ? 'secondary' : 'ghost'} size="sm" onClick={() => setCampaignStatus(status)} className="h-7 px-3 text-xs capitalize">
+                    {status === 'off' ? 'Paused / off' : status}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <div className="relative mt-2">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={campaignSearch} onChange={event => setCampaignSearch(event.target.value)} placeholder="Search ad, campaign, or ad set" className="h-9 pl-9" />
+            </div>
+          </CardHeader>
+          <CardContent className="p-4 pt-2">
+            {filteredAds.length === 0 ? (
+              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                {campaigns.length === 0 ? 'No campaigns synced yet. Use Refresh Meta to load current ads.' : 'No ads match this view.'}
+              </div>
+            ) : (
+              <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                {filteredAds.slice(0, 12).map(ad => (
+                  <div key={`${ad.campaign.id}-${ad.id}`} className="flex min-w-0 items-start gap-3 rounded-lg border bg-card p-3">
+                    <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${isActiveAd(ad.status) ? 'bg-success' : 'bg-muted-foreground/40'}`} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="truncate text-sm font-semibold" title={ad.name}>{ad.name}</p>
+                        <Badge variant={isActiveAd(ad.status) ? 'default' : 'secondary'} className="shrink-0 text-[10px] capitalize">{normalizedStatus(ad.status).replace(/_/g, ' ') || 'unknown'}</Badge>
+                      </div>
+                      <p className="truncate text-xs text-muted-foreground" title={ad.campaign.campaign_name}>Campaign: {ad.campaign.campaign_name}</p>
+                      <div className="mt-2 flex gap-3 text-[11px] text-muted-foreground">
+                        <span className="flex items-center gap-1"><MousePointerClick className="h-3 w-3" />{Number(ad.campaign.clicks || 0).toLocaleString()} campaign clicks</span>
+                        <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" />{Number(ad.campaign.leads_count || 0).toLocaleString()} leads</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Automations List */}
         <Card className="border-0 shadow-lg">
@@ -414,8 +596,11 @@ export default function MetaAdsAutomations() {
                 const triggerInfo = TRIGGER_LABELS[automation.trigger_type] || { label: automation.trigger_type, icon: Zap };
                 const TriggerIcon = triggerInfo.icon;
                 const actions = (automation.actions || []) as Record<string, unknown>[];
-                const targetedCampaigns = (automation.trigger_campaign_ids || [])
-                  .map(cid => campaigns.find(c => c.id === cid)?.campaign_name)
+                  const targetedCampaigns = (automation.trigger_campaign_ids || [])
+                   .map(cid => {
+                     const campaign = campaigns.find(c => c.id === cid);
+                     return campaign ? getCampaignDisplayName(campaign) : null;
+                   })
                   .filter(Boolean);
 
                 return (
@@ -532,7 +717,7 @@ export default function MetaAdsAutomations() {
               <p className="text-[11px] text-muted-foreground">Select specific campaigns or leave empty for all</p>
               {campaigns.length > 0 ? (
                 <div className="grid grid-cols-1 gap-1.5 max-h-40 overflow-y-auto border rounded-lg p-2 bg-muted/20">
-                  {campaigns.map(campaign => {
+                  {[...campaigns].sort((a, b) => Number(isActiveCampaign(b)) - Number(isActiveCampaign(a))).map(campaign => {
                     const isSelected = formCampaignIds.includes(campaign.id);
                     return (
                       <button
@@ -550,8 +735,11 @@ export default function MetaAdsAutomations() {
                         }`}>
                           {isSelected && <CheckCircle2 className="h-3 w-3 text-primary-foreground" />}
                         </div>
-                        <span className="font-medium truncate flex-1">{campaign.campaign_name}</span>
-                        <Badge variant="secondary" className="text-[10px] flex-shrink-0">{campaign.status}</Badge>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium">{getCampaignDisplayName(campaign)}</p>
+                          <p className="truncate text-[10px] text-muted-foreground">Campaign: {campaign.campaign_name}{campaign.adset_name ? ` · ${campaign.adset_name}` : ''}</p>
+                        </div>
+                        <Badge variant={isActiveCampaign(campaign) ? 'default' : 'secondary'} className="text-[10px] flex-shrink-0 capitalize">{campaign.status}</Badge>
                       </button>
                     );
                   })}
