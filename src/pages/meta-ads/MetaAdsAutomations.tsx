@@ -227,6 +227,22 @@ export default function MetaAdsAutomations() {
     if (!campaign.last_synced_at) return latest;
     return !latest || new Date(campaign.last_synced_at) > new Date(latest) ? campaign.last_synced_at : latest;
   }, null);
+
+  useEffect(() => {
+    const workspaceId = currentTenant?.id;
+    if (!workspaceId || connectedAccounts.length === 0) return;
+
+    const syncInBackground = async () => {
+      const { data, error } = await supabase.functions.invoke('meta-ads-sync', { body: { tenantId: workspaceId } });
+      if (!error && !data?.error) await refetchMetaAds();
+    };
+
+    const lastSyncTime = latestSync ? new Date(latestSync).getTime() : 0;
+    if (Date.now() - lastSyncTime > 5 * 60_000) void syncInBackground();
+    const interval = window.setInterval(() => void syncInBackground(), 5 * 60_000);
+    return () => window.clearInterval(interval);
+  }, [connectedAccounts.length, currentTenant?.id, latestSync]);
+
   const filteredAds = campaignAdRows
     .filter(ad => campaignStatus === 'all' || (campaignStatus === 'active' ? isActiveAd(ad.status) : !isActiveAd(ad.status)))
     .filter(ad => {
