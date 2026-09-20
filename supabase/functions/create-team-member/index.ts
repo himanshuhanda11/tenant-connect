@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
       console.error("Create user error:", createErr);
       if (createErr.code === "weak_password") {
         return json({
-          error: "This password is too common or has appeared in a data breach. Use a unique password with at least 10 characters, including uppercase, lowercase, a number, and a symbol.",
+          error: "Password must be at least 6 characters.",
           code: "weak_password",
         }, 400);
       }
