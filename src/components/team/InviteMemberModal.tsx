@@ -274,7 +274,7 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="At least 10 characters"
+                    placeholder="At least 6 characters"
                     autoComplete="new-password"
                     disabled={!canInviteMembers}
                     className="pr-10"
@@ -290,7 +290,7 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Use a unique password with uppercase, lowercase, a number, and a symbol.
+                  Any password with 6 or more characters works.
                 </p>
               </div>
               {sharedFields}
