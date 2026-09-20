@@ -83,8 +83,15 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
         },
       });
 
-      if (error) throw error;
       if (data?.error) throw new Error(data.error);
+      if (error) {
+        let message = error.message;
+        if ('context' in error && error.context instanceof Response) {
+          const payload = await error.context.clone().json().catch(() => null);
+          if (payload?.error) message = payload.error;
+        }
+        throw new Error(message);
+      }
 
       toast.success('Team member added successfully');
       resetForm();
@@ -150,7 +157,7 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
     </>
   );
 
-  const directAddValid = (email || username) && password && password.length >= 6;
+  const directAddValid = Boolean((email || username) && password && password.length >= 10);
 
   return (
     <>
@@ -267,7 +274,8 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Min 6 characters"
+                    placeholder="At least 10 characters"
+                    autoComplete="new-password"
                     disabled={!canInviteMembers}
                     className="pr-10"
                   />
@@ -281,6 +289,9 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
                     {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Use a unique password with uppercase, lowercase, a number, and a symbol.
+                </p>
               </div>
               {sharedFields}
             </TabsContent>
