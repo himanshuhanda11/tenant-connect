@@ -540,7 +540,7 @@ export default function MetaAdsAutomations() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-2">
                         <p className="truncate text-sm font-semibold" title={ad.name}>{ad.name}</p>
-                        <Badge variant={isActiveAd(ad.status) ? 'default' : 'secondary'} className="shrink-0 text-[10px] capitalize">{normalizedStatus(ad.status).replaceAll('_', ' ') || 'unknown'}</Badge>
+                        <Badge variant={isActiveAd(ad.status) ? 'default' : 'secondary'} className="shrink-0 text-[10px] capitalize">{normalizedStatus(ad.status).replace(/_/g, ' ') || 'unknown'}</Badge>
                       </div>
                       <p className="truncate text-xs text-muted-foreground" title={ad.campaign.campaign_name}>Campaign: {ad.campaign.campaign_name}</p>
                       <div className="mt-2 flex gap-3 text-[11px] text-muted-foreground">
