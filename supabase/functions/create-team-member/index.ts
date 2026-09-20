@@ -44,7 +44,13 @@ Deno.serve(async (req) => {
 
     if (createErr) {
       console.error("Create user error:", createErr);
-      return json({ error: createErr.message }, 400);
+      if (createErr.code === "weak_password") {
+        return json({
+          error: "This password is too common or has appeared in a data breach. Use a unique password with at least 10 characters, including uppercase, lowercase, a number, and a symbol.",
+          code: "weak_password",
+        }, 400);
+      }
+      return json({ error: createErr.message, code: createErr.code }, 400);
     }
 
     const userId = newUser.user.id;
@@ -57,11 +63,17 @@ Deno.serve(async (req) => {
     }).eq("id", userId);
 
     // 5. Add as tenant member
-    await admin.from("tenant_members").insert({
+    const { error: memberErr } = await admin.from("tenant_members").insert({
       tenant_id: tenantId,
       user_id: userId,
       role: "agent",
     });
+
+    if (memberErr) {
+      console.error("Tenant member create error:", memberErr);
+      await admin.auth.admin.deleteUser(userId);
+      return json({ error: memberErr.message, code: "member_create_failed" }, 400);
+    }
 
     // 6. Create agent record
     const { data: agentData, error: agentErr } = await admin.from("agents").insert({
