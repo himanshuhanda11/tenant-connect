@@ -135,13 +135,22 @@ Deno.serve(async (req) => {
             // Fetch ads under this campaign to get ad-level IDs for CTWA matching
             let adIds: string[] = [];
             let adsetIds: string[] = [];
+            let adSummaries: Array<{ id: string; name: string; status: string; effective_status: string | null; adset_id: string | null; adset_name: string | null }> = [];
             try {
-              const adsUrl = `https://graph.facebook.com/${GRAPH_API_VERSION}/${campaign.id}/ads?fields=id,adset_id&limit=100&access_token=${accessToken}`;
+              const adsUrl = `https://graph.facebook.com/${GRAPH_API_VERSION}/${campaign.id}/ads?fields=id,name,status,effective_status,adset_id,adset{name}&limit=100&access_token=${accessToken}`;
               const adsRes = await fetch(adsUrl);
               const adsData = await adsRes.json();
               if (adsData.data) {
                 adIds = adsData.data.map((ad: any) => ad.id);
                 adsetIds = [...new Set(adsData.data.map((ad: any) => ad.adset_id).filter(Boolean))];
+                adSummaries = adsData.data.map((ad: any) => ({
+                  id: ad.id,
+                  name: ad.name || `Ad ${ad.id}`,
+                  status: ad.status || 'UNKNOWN',
+                  effective_status: ad.effective_status || null,
+                  adset_id: ad.adset_id || null,
+                  adset_name: ad.adset?.name || null,
+                }));
               }
             } catch (adFetchErr) {
               console.warn(`Could not fetch ads for campaign ${campaign.id}:`, adFetchErr);
@@ -169,7 +178,8 @@ Deno.serve(async (req) => {
                 start_date: campaign.start_time ? campaign.start_time.split('T')[0] : null,
                 end_date: campaign.stop_time ? campaign.stop_time.split('T')[0] : null,
                 last_synced_at: new Date().toISOString(),
-                raw_meta_data: { campaign, insight, ad_ids: adIds, adset_ids: adsetIds },
+                ad_name: adSummaries.length === 1 ? adSummaries[0].name : null,
+                raw_meta_data: { campaign, insight, ad_ids: adIds, adset_ids: adsetIds, ads: adSummaries },
               }, {
                 onConflict: 'workspace_id,meta_campaign_id',
                 ignoreDuplicates: false,
@@ -200,7 +210,8 @@ Deno.serve(async (req) => {
                       conversations_started: conversations,
                       ctr, cpc, cpl,
                       last_synced_at: new Date().toISOString(),
-                      raw_meta_data: { campaign, insight, ad_ids: adIds, adset_ids: adsetIds },
+                      ad_name: adSummaries.length === 1 ? adSummaries[0].name : null,
+                      raw_meta_data: { campaign, insight, ad_ids: adIds, adset_ids: adsetIds, ads: adSummaries },
                     })
                     .eq('id', existing.id);
                 } else {
@@ -220,7 +231,8 @@ Deno.serve(async (req) => {
                       start_date: campaign.start_time ? campaign.start_time.split('T')[0] : null,
                       end_date: campaign.stop_time ? campaign.stop_time.split('T')[0] : null,
                       last_synced_at: new Date().toISOString(),
-                      raw_meta_data: { campaign, insight, ad_ids: adIds, adset_ids: adsetIds },
+                      ad_name: adSummaries.length === 1 ? adSummaries[0].name : null,
+                      raw_meta_data: { campaign, insight, ad_ids: adIds, adset_ids: adsetIds, ads: adSummaries },
                     });
                 }
               }

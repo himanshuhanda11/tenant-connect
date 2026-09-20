@@ -1,9 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 
 export function useMetaAdAccounts() {
   const { currentTenant } = useTenant();
+  const queryClient = useQueryClient();
 
   const accountsQuery = useQuery({
     queryKey: ['meta-ad-accounts', currentTenant?.id],
@@ -19,6 +21,8 @@ export function useMetaAdAccounts() {
       return data || [];
     },
     enabled: !!currentTenant?.id,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   });
 
   const campaignsQuery = useQuery({
@@ -34,7 +38,31 @@ export function useMetaAdAccounts() {
       return data || [];
     },
     enabled: !!currentTenant?.id,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   });
+
+  useEffect(() => {
+    const workspaceId = currentTenant?.id;
+    if (!workspaceId) return;
+
+    const refreshAccounts = () => {
+      void queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts', workspaceId] });
+    };
+    const refreshCampaigns = () => {
+      void queryClient.invalidateQueries({ queryKey: ['meta-ad-campaigns', workspaceId] });
+    };
+
+    const channel = supabase
+      .channel(`meta-ads-live-${workspaceId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'smeksh_meta_ad_accounts', filter: `workspace_id=eq.${workspaceId}` }, refreshAccounts)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'smeksh_meta_ad_campaigns', filter: `workspace_id=eq.${workspaceId}` }, refreshCampaigns)
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [currentTenant?.id, queryClient]);
 
   const connectedAccounts = accountsQuery.data?.filter(a => a.status === 'connected') || [];
   const isConnected = connectedAccounts.length > 0;
