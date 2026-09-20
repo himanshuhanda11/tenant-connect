@@ -19838,6 +19838,8 @@ export type Database = {
         }
         Returns: number
       }
+      my_agent_tenant_ids: { Args: never; Returns: string[] }
+      my_tenant_ids: { Args: never; Returns: string[] }
       next_invoice_number: { Args: never; Returns: string }
       open_conversation: {
         Args: {
