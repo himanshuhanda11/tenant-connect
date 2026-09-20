@@ -202,22 +202,40 @@ export default function MetaAdsAutomations() {
 
   const normalizedStatus = (status?: string | null) => (status || '').toLowerCase();
   const isActiveCampaign = (campaign: typeof campaigns[number]) => normalizedStatus(campaign.status) === 'active';
-  const activeCampaigns = campaigns.filter(isActiveCampaign);
-  const inactiveCampaigns = campaigns.filter(campaign => !isActiveCampaign(campaign));
+  const campaignAdRows = campaigns.flatMap(campaign => {
+    const ads = getCampaignAds(campaign);
+    if (ads.length === 0) {
+      return [{
+        id: campaign.id,
+        name: campaign.ad_name || campaign.campaign_name,
+        status: campaign.status,
+        campaign,
+      }];
+    }
+    return ads.map((ad, index) => ({
+      id: ad.id || `${campaign.id}-${index}`,
+      name: ad.name || campaign.campaign_name,
+      status: ad.effective_status || ad.status || campaign.status,
+      campaign,
+    }));
+  });
+  const isActiveAd = (status?: string | null) => normalizedStatus(status) === 'active';
+  const activeAds = campaignAdRows.filter(ad => isActiveAd(ad.status));
+  const inactiveAds = campaignAdRows.filter(ad => !isActiveAd(ad.status));
   const activeAutomations = automations.filter(automation => automation.is_active);
   const latestSync = campaigns.reduce<string | null>((latest, campaign) => {
     if (!campaign.last_synced_at) return latest;
     return !latest || new Date(campaign.last_synced_at) > new Date(latest) ? campaign.last_synced_at : latest;
   }, null);
-  const filteredCampaigns = [...campaigns]
-    .filter(campaign => campaignStatus === 'all' || (campaignStatus === 'active' ? isActiveCampaign(campaign) : !isActiveCampaign(campaign)))
-    .filter(campaign => {
+  const filteredAds = campaignAdRows
+    .filter(ad => campaignStatus === 'all' || (campaignStatus === 'active' ? isActiveAd(ad.status) : !isActiveAd(ad.status)))
+    .filter(ad => {
       const query = campaignSearch.trim().toLowerCase();
       if (!query) return true;
-      return [campaign.campaign_name, campaign.ad_name, campaign.adset_name, ...getCampaignAds(campaign).map(ad => ad.name)]
+      return [ad.name, ad.campaign.campaign_name, ad.campaign.adset_name]
         .some(value => value?.toLowerCase().includes(query));
     })
-    .sort((a, b) => Number(isActiveCampaign(b)) - Number(isActiveCampaign(a)) || getCampaignDisplayName(a).localeCompare(getCampaignDisplayName(b)));
+    .sort((a, b) => Number(isActiveAd(b.status)) - Number(isActiveAd(a.status)) || a.name.localeCompare(b.name));
 
   const resetForm = () => {
     setFormName('');
@@ -472,17 +490,17 @@ export default function MetaAdsAutomations() {
 
         <div className="grid grid-cols-2 gap-2 lg:grid-cols-4 sm:gap-3">
           {[
-            { label: 'Active ads', value: activeCampaigns.length, icon: Radio, tone: 'text-success bg-success/10' },
-            { label: 'Paused / off', value: inactiveCampaigns.length, icon: Pause, tone: 'text-warning bg-warning/10' },
+            { label: 'Active ads', value: activeAds.length, icon: Radio, tone: 'text-success bg-success/10' },
+            { label: 'Paused / off', value: inactiveAds.length, icon: Pause, tone: 'text-warning bg-warning/10' },
             { label: 'Active automations', value: activeAutomations.length, icon: Zap, tone: 'text-primary bg-primary/10' },
             { label: 'Last Meta update', value: latestSync ? new Date(latestSync).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Not synced', icon: Clock, tone: 'text-info bg-info/10' },
           ].map(item => (
             <Card key={item.label} className="border shadow-card">
-              <CardContent className="flex items-center gap-3 p-3 sm:p-4">
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${item.tone}`}><item.icon className="h-4 w-4" /></div>
-                <div className="min-w-0">
-                  <p className="truncate text-xs text-muted-foreground">{item.label}</p>
-                  <p className="truncate text-lg font-semibold">{item.value}</p>
+              <CardContent className="relative min-h-[76px] p-3 sm:flex sm:items-center sm:gap-3 sm:p-4">
+                <div className={`absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg sm:static sm:h-9 sm:w-9 sm:shrink-0 ${item.tone}`}><item.icon className="h-4 w-4" /></div>
+                <div className="min-w-0 pr-8 sm:pr-0">
+                  <p className="text-[11px] leading-4 text-muted-foreground sm:text-xs">{item.label}</p>
+                  <p className="mt-1 break-words text-base font-semibold leading-5 sm:text-lg" title={String(item.value)}>{item.value}</p>
                 </div>
               </CardContent>
             </Card>
@@ -510,22 +528,24 @@ export default function MetaAdsAutomations() {
             </div>
           </CardHeader>
           <CardContent className="p-4 pt-2">
-            {filteredCampaigns.length === 0 ? (
-              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">No ads match this view.</div>
+            {filteredAds.length === 0 ? (
+              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                {campaigns.length === 0 ? 'No campaigns synced yet. Use Refresh Meta to load current ads.' : 'No ads match this view.'}
+              </div>
             ) : (
               <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-                {filteredCampaigns.slice(0, 12).map(campaign => (
-                  <div key={campaign.id} className="flex min-w-0 items-start gap-3 rounded-lg border bg-card p-3">
-                    <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${isActiveCampaign(campaign) ? 'bg-success' : 'bg-muted-foreground/40'}`} />
+                {filteredAds.slice(0, 12).map(ad => (
+                  <div key={`${ad.campaign.id}-${ad.id}`} className="flex min-w-0 items-start gap-3 rounded-lg border bg-card p-3">
+                    <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${isActiveAd(ad.status) ? 'bg-success' : 'bg-muted-foreground/40'}`} />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-2">
-                        <p className="truncate text-sm font-semibold" title={getCampaignDisplayName(campaign)}>{getCampaignDisplayName(campaign)}</p>
-                        <Badge variant={isActiveCampaign(campaign) ? 'default' : 'secondary'} className="shrink-0 text-[10px] capitalize">{campaign.status}</Badge>
+                        <p className="truncate text-sm font-semibold" title={ad.name}>{ad.name}</p>
+                        <Badge variant={isActiveAd(ad.status) ? 'default' : 'secondary'} className="shrink-0 text-[10px] capitalize">{normalizedStatus(ad.status).replaceAll('_', ' ') || 'unknown'}</Badge>
                       </div>
-                      <p className="truncate text-xs text-muted-foreground" title={campaign.campaign_name}>Campaign: {campaign.campaign_name}</p>
+                      <p className="truncate text-xs text-muted-foreground" title={ad.campaign.campaign_name}>Campaign: {ad.campaign.campaign_name}</p>
                       <div className="mt-2 flex gap-3 text-[11px] text-muted-foreground">
-                        <span className="flex items-center gap-1"><MousePointerClick className="h-3 w-3" />{Number(campaign.clicks || 0).toLocaleString()} clicks</span>
-                        <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" />{Number(campaign.leads_count || 0).toLocaleString()} leads</span>
+                        <span className="flex items-center gap-1"><MousePointerClick className="h-3 w-3" />{Number(ad.campaign.clicks || 0).toLocaleString()} campaign clicks</span>
+                        <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" />{Number(ad.campaign.leads_count || 0).toLocaleString()} leads</span>
                       </div>
                     </div>
                   </div>
