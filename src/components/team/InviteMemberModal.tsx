@@ -157,7 +157,7 @@ const InviteMemberModal = ({ open, onOpenChange }: InviteMemberModalProps) => {
     </>
   );
 
-  const directAddValid = Boolean((email || username) && password && password.length >= 10);
+  const directAddValid = Boolean((email || username) && password && password.length >= 6);
 
   return (
     <>
