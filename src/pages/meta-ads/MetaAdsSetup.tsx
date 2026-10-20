@@ -39,7 +39,7 @@ interface MetaPage {
 // Required scopes for full functionality
 // leads_retrieval is required by Meta to subscribe to leadgen webhooks and retrieve Lead Ads leads
 // pages_manage_ads is required to access Lead Ads forms; pages_show_list is a dependency
-const REQUIRED_SCOPES = ['ads_read', 'pages_show_list', 'pages_manage_ads', 'leads_retrieval', 'business_management', 'pages_read_engagement'];
+const REQUIRED_SCOPES = ['ads_read', 'ads_management', 'pages_show_list', 'pages_manage_ads', 'leads_retrieval', 'business_management', 'pages_read_engagement'];
 
 type ConnectionStatus = 'connected' | 'expired' | 'missing_scopes' | 'disconnected' | 'pending_setup';
 
@@ -281,7 +281,19 @@ export default function MetaAdsSetup() {
         businessName: prev.businessName || biz.name,
       }));
     }
-    toast.success(`Found ${data.adAccounts?.length || 0} ad account(s), ${data.pages?.length || 0} page(s), ${data.instagramAccounts?.length || 0} IG account(s).`);
+    const grantedNow: string[] = (data.permissions || [])
+      .filter((p: any) => p.status === 'granted')
+      .map((p: any) => p.permission);
+    const adsAccessMissing = !grantedNow.includes('ads_read') && !grantedNow.includes('ads_management');
+    if ((data.adAccounts?.length || 0) === 0 && adsAccessMissing) {
+      const msg = 'Facebook did not give Aireatro access to your ad accounts. Click Reconnect Facebook, choose "Edit settings", and turn ON your ad account and the "Manage your ads" permission. Your Facebook profile must also be an admin of that ad account.';
+      setAdAccountsError(msg);
+      toast.error(msg, { duration: 12000 });
+    } else if ((data.adAccounts?.length || 0) === 0) {
+      toast.warning(`No ad accounts found for this Facebook profile. Found ${data.pages?.length || 0} page(s). Make sure this profile has admin access to an ad account in Meta Business Settings.`, { duration: 10000 });
+    } else {
+      toast.success(`Found ${data.adAccounts?.length || 0} ad account(s), ${data.pages?.length || 0} page(s), ${data.instagramAccounts?.length || 0} IG account(s).`);
+    }
     setWizardStep((s) => (s < 1 ? 1 : s));
   };
 
