@@ -107,12 +107,20 @@ Deno.serve(async (req) => {
         access_token: undefined,
       }));
 
-    const systemUserToken = Deno.env.get('META_SYSTEM_USER_TOKEN') || null;
-    // Use the user's OAuth token to call /me/accounts which returns PAGE-specific tokens
-    // The user token itself cannot call /{page_id}/leadgen_forms — only page tokens can
+    // Use ONLY this workspace's own connected Meta token. Never fall back to the platform-wide
+    // system user token: it belongs to another business and would leak its Pages/forms/leads
+    // into workspaces that have not connected their own Facebook account.
     const userOAuthToken = connectedAccounts.find((account) => account.meta_access_token)?.meta_access_token || null;
-    let accessToken = userOAuthToken || systemUserToken || null;
-    if (!accessToken) return json({ error: 'No Meta access token configured' }, 400);
+    const accessToken = userOAuthToken;
+    if (!accessToken) {
+      return json({
+        success: false,
+        needs_connection: true,
+        pages: [],
+        forms: [],
+        message: 'Connect your Facebook account in Meta Ads Setup first to sync lead forms for this workspace.',
+      });
+    }
 
     async function refreshStoredScopes() {
       try {
