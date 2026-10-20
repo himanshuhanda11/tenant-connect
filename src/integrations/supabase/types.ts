@@ -8718,6 +8718,57 @@ export type Database = {
           },
         ]
       }
+      meta_oauth_pending: {
+        Row: {
+          access_token: string
+          ad_account_ids: string[]
+          business_ids: string[]
+          created_at: string
+          expires_at: string
+          granted_scopes: string[]
+          id: string
+          instagram_ids: string[]
+          meta_user_id: string | null
+          meta_user_name: string | null
+          page_ids: string[]
+          tenant_id: string
+          token_expires_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          ad_account_ids?: string[]
+          business_ids?: string[]
+          created_at?: string
+          expires_at?: string
+          granted_scopes?: string[]
+          id?: string
+          instagram_ids?: string[]
+          meta_user_id?: string | null
+          meta_user_name?: string | null
+          page_ids?: string[]
+          tenant_id: string
+          token_expires_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          ad_account_ids?: string[]
+          business_ids?: string[]
+          created_at?: string
+          expires_at?: string
+          granted_scopes?: string[]
+          id?: string
+          instagram_ids?: string[]
+          meta_user_id?: string | null
+          meta_user_name?: string | null
+          page_ids?: string[]
+          tenant_id?: string
+          token_expires_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       meta_pricing_sync_runs: {
         Row: {
           detail: Json | null

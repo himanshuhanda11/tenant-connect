@@ -70,13 +70,13 @@ export default function LeadFormsPage() {
       if (!currentTenant?.id) return null;
       const { data } = await supabase
         .from('smeksh_meta_ad_accounts')
-        .select('id, status, scopes_granted, facebook_page_id, facebook_page_name, meta_access_token, token_expires_at')
+        .select('id, status, scopes_granted, facebook_page_id, facebook_page_name, token_expires_at')
         .eq('workspace_id', currentTenant.id)
         .eq('is_active', true)
         .limit(1)
         .maybeSingle();
       const scopes = (data?.scopes_granted as string[] | null) || [];
-      if (data?.meta_access_token && !scopes.includes('leads_retrieval')) {
+      if (data?.status === 'connected' && !scopes.includes('leads_retrieval')) {
         const { data: refreshed } = await supabase.functions.invoke('meta-sync-lead-forms', {
           body: { tenantId: currentTenant.id, action: 'refresh_permissions' },
         });
