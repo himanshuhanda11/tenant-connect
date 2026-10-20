@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { META_AD_ACCOUNT_PUBLIC_COLUMNS } from '@/lib/metaAdAccountColumns';
 
 export function useMetaAdAccounts() {
   const { currentTenant } = useTenant();
@@ -13,7 +14,7 @@ export function useMetaAdAccounts() {
       if (!currentTenant?.id) return [];
       const { data, error } = await supabase
         .from('smeksh_meta_ad_accounts')
-        .select('*')
+        .select(META_AD_ACCOUNT_PUBLIC_COLUMNS)
         .eq('workspace_id', currentTenant.id)
         .eq('is_active', true)
         .order('created_at', { ascending: false });

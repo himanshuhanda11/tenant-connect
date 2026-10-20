@@ -24,6 +24,8 @@ import { useTenant } from '@/contexts/TenantContext';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { useFeatureGate } from '@/hooks/useFeatureGate';
 import { loadFacebookSdk } from '@/lib/loadFacebookSdk';
+import { META_AD_ACCOUNT_PUBLIC_COLUMNS } from '@/lib/metaAdAccountColumns';
+import { MetaConnectionDiagnosis, type MetaDiagnosis } from '@/components/meta-ads/MetaConnectionDiagnosis';
 
 declare global {
   interface Window { FB: any; }
@@ -33,13 +35,14 @@ interface MetaAdAccount {
   id: string; name: string; status: number; currency: string; timezone: string;
 }
 interface MetaPage {
-  id: string; name: string; category: string; accessToken: string;
+  id: string; name: string; category: string;
 }
 
 // Required scopes for full functionality
 // leads_retrieval is required by Meta to subscribe to leadgen webhooks and retrieve Lead Ads leads
 // pages_manage_ads is required to access Lead Ads forms; pages_show_list is a dependency
-const REQUIRED_SCOPES = ['ads_read', 'ads_management', 'pages_show_list', 'pages_manage_ads', 'leads_retrieval', 'business_management', 'pages_read_engagement'];
+// pages_manage_metadata is required to subscribe Pages to leadgen webhooks
+const REQUIRED_SCOPES = ['ads_read', 'ads_management', 'pages_show_list', 'pages_manage_ads', 'pages_manage_metadata', 'leads_retrieval', 'business_management', 'pages_read_engagement'];
 
 type ConnectionStatus = 'connected' | 'expired' | 'missing_scopes' | 'disconnected' | 'pending_setup';
 
@@ -74,7 +77,8 @@ export default function MetaAdsSetup() {
   const [isFbLoading, setIsFbLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [fbConnected, setFbConnected] = useState(false);
-  const [longLivedToken, setLongLivedToken] = useState('');
+  const [pendingId, setPendingId] = useState('');
+  const [diagnosis, setDiagnosis] = useState<MetaDiagnosis | null>(null);
   const [adAccounts, setAdAccounts] = useState<MetaAdAccount[]>([]);
   const [pages, setPages] = useState<MetaPage[]>([]);
   const [permissions, setPermissions] = useState<any[]>([]);
@@ -113,7 +117,7 @@ export default function MetaAdsSetup() {
       if (!currentTenant?.id) return [];
       const { data, error } = await supabase
         .from('smeksh_meta_ad_accounts')
-        .select('*')
+        .select(META_AD_ACCOUNT_PUBLIC_COLUMNS)
         .eq('workspace_id', currentTenant.id)
         .eq('is_active', true);
       if (error) throw error;
@@ -201,7 +205,7 @@ export default function MetaAdsSetup() {
         .update({ is_active: false, status: 'disconnected' as const })
         .eq('workspace_id', currentTenant.id);
       if (error) throw error;
-      setFbConnected(false); setAdAccounts([]); setPages([]); setPermissions([]); setLongLivedToken(''); setAdAccountsError(null);
+      setFbConnected(false); setAdAccounts([]); setPages([]); setPermissions([]); setPendingId(''); setDiagnosis(null); setAdAccountsError(null);
       setFormData({ adAccountId: '', adAccountName: '', pageId: '', pageName: '', phoneNumberId: '', phoneDisplay: '', instagramAccountId: '', instagramUsername: '', pixelId: '', pixelName: '', businessId: '', businessName: '' });
       queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts'] });
       queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts-leadforms'] });
@@ -218,24 +222,35 @@ export default function MetaAdsSetup() {
     }
   };
 
+  const callFbLogin = async (payload: Record<string, unknown>) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('Not authenticated');
+    const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/meta-ads-fb-login`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenantId: currentTenant?.id, ...payload }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Facebook connection request failed');
+    return data;
+  };
+
+  const invalidateMetaQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts'] });
+    queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts-leadforms'] });
+    queryClient.invalidateQueries({ queryKey: ['meta-ad-campaigns'] });
+  };
+
   const handleRefreshAssets = async () => {
-    if (!connectedAccount?.meta_access_token || !currentTenant?.id) {
-      toast.error('No active token. Please reconnect.');
+    if (!connectedAccount || !currentTenant?.id) {
+      toast.error('No saved Facebook connection. Please connect Facebook.');
       return;
     }
     setIsRefreshing(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/meta-ads-fb-login`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken: connectedAccount.meta_access_token, tenantId: currentTenant.id }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to refresh');
+      const data = await callFbLogin({ action: 'refresh' });
       processMetaResponse(data);
-      toast.success('Assets refreshed successfully');
+      invalidateMetaQueries();
     } catch (err: any) {
       toast.error(err.message || 'Refresh failed');
     } finally {
@@ -244,10 +259,11 @@ export default function MetaAdsSetup() {
   };
 
   const processMetaResponse = (data: any) => {
-    setLongLivedToken(data.longLivedToken || '');
+    if (data.pendingId) setPendingId(data.pendingId);
     setAdAccounts(data.adAccounts || []);
     setPages(data.pages || []);
     setPermissions(data.permissions || []);
+    setDiagnosis(data.diagnosis || null);
     setAdAccountsError(data.adAccountsError || null);
     setFbConnected(true);
     if (data.adAccounts?.length === 1) {
@@ -256,7 +272,6 @@ export default function MetaAdsSetup() {
     if (data.pages?.length === 1) {
       setFormData(prev => ({ ...prev, pageId: data.pages[0].id, pageName: data.pages[0].name }));
     }
-    // Store Instagram accounts for selector and auto-populate first
     if (data.instagramAccounts?.length > 0) {
       setInstagramAccounts(data.instagramAccounts);
       const ig = data.instagramAccounts[0];
@@ -266,12 +281,10 @@ export default function MetaAdsSetup() {
         instagramUsername: prev.instagramUsername || ig.username,
       }));
     }
-    // Store businesses for selector and auto-match by workspace name
     if (data.businesses?.length > 0) {
       setBusinesses(data.businesses);
       const workspaceName = currentTenant?.name?.toLowerCase() || '';
-      // Try to match business by workspace name
-      const matched = data.businesses.find((b: any) => 
+      const matched = data.businesses.find((b: any) =>
         b.name.toLowerCase().includes(workspaceName) || workspaceName.includes(b.name.toLowerCase())
       );
       const biz = matched || data.businesses[0];
@@ -281,44 +294,10 @@ export default function MetaAdsSetup() {
         businessName: prev.businessName || biz.name,
       }));
     }
-    const grantedNow: string[] = (data.permissions || [])
-      .filter((p: any) => p.status === 'granted')
-      .map((p: any) => p.permission);
-    const adsAccessMissing = !grantedNow.includes('ads_read') && !grantedNow.includes('ads_management');
-    if ((data.adAccounts?.length || 0) === 0 && adsAccessMissing) {
-      const msg = 'Facebook did not give Aireatro access to your ad accounts. Click Reconnect Facebook, choose "Edit settings", and turn ON your ad account and the "Manage your ads" permission. Your Facebook profile must also be an admin of that ad account.';
-      setAdAccountsError(msg);
-      toast.error(msg, { duration: 12000 });
-    } else if ((data.adAccounts?.length || 0) === 0) {
-      toast.warning(`No ad accounts found for this Facebook profile. Found ${data.pages?.length || 0} page(s). Make sure this profile has admin access to an ad account in Meta Business Settings.`, { duration: 10000 });
-    } else {
-      toast.success(`Found ${data.adAccounts?.length || 0} ad account(s), ${data.pages?.length || 0} page(s), ${data.instagramAccounts?.length || 0} IG account(s).`);
-    }
+    const d = data.diagnosis;
+    if (d?.severity === 'ok') toast.success(d.message);
+    else if (d) toast.error(`${d.title}: ${d.message}`, { duration: 10000 });
     setWizardStep((s) => (s < 1 ? 1 : s));
-  };
-
-  const persistReauthorization = async (data: any) => {
-    if (!currentTenant?.id || !connectedAccount?.id) return;
-
-    const grantedScopes = (data.permissions || [])
-      .filter((p: any) => p.status === 'granted')
-      .map((p: any) => p.permission);
-
-    const { error } = await supabase
-      .from('smeksh_meta_ad_accounts')
-      .update({
-        meta_access_token: data.longLivedToken || connectedAccount.meta_access_token || null,
-        scopes_granted: grantedScopes,
-        status: 'connected' as const,
-        is_active: true,
-      })
-      .eq('id', connectedAccount.id)
-      .eq('workspace_id', currentTenant.id);
-
-    if (error) throw error;
-    queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts'] });
-    queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts-leadforms'] });
-    toast.success('Meta permissions refreshed successfully');
   };
 
   const metaAdsGate = useFeatureGate('meta_ads');
@@ -348,24 +327,24 @@ export default function MetaAdsSetup() {
         }
         (async () => {
           try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) throw new Error('Not authenticated');
-            const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/meta-ads-fb-login`, {
-              method: 'POST',
-              headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ accessToken: response.authResponse.accessToken, tenantId: currentTenant.id }),
+            const data = await callFbLogin({
+              action: 'discover',
+              accessToken: response.authResponse.accessToken,
+              applyToExisting: hasExistingConnection,
             });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Failed to process Facebook login');
             processMetaResponse(data);
-            if (hasExistingConnection) await persistReauthorization(data);
+            if (data.reauthorized) {
+              invalidateMetaQueries();
+              toast.success('Facebook login and permissions refreshed');
+            }
           } catch (err: any) {
             toast.error(err.message || 'Failed to process Facebook login');
           } finally {
             setIsFbLoading(false);
           }
         })();
-      }, { scope: REQUIRED_SCOPES.join(','), auth_type: 'reauthorize' });
+      // 'rerequest' makes Facebook ask again for permissions the user previously declined
+      }, { scope: REQUIRED_SCOPES.join(','), auth_type: 'rerequest', return_scopes: true });
     } catch (err: any) {
       toast.error(err.message || 'Failed to open Facebook login');
       setIsFbLoading(false);
@@ -386,16 +365,9 @@ export default function MetaAdsSetup() {
     if (!manualToken.trim() || !currentTenant?.id) return;
     setIsManualLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/meta-ads-fb-login`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accessToken: manualToken.trim(), tenantId: currentTenant.id }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to process token');
+      const data = await callFbLogin({ action: 'discover', accessToken: manualToken.trim(), applyToExisting: false });
       processMetaResponse(data);
+      setManualToken('');
     } catch (err: any) {
       toast.error(err.message || 'Failed to process token');
     } finally {
@@ -405,35 +377,23 @@ export default function MetaAdsSetup() {
 
   const handleComplete = async () => {
     if (!currentTenant?.id || !formData.adAccountId) return;
+    if (!pendingId) {
+      toast.error('Please click Continue with Facebook first.');
+      setWizardStep(0);
+      return;
+    }
     setIsConnecting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const grantedScopes = permissions.filter((p: any) => p.status === 'granted').map((p: any) => p.permission);
-      const { error } = await supabase.from('smeksh_meta_ad_accounts').upsert({
-        workspace_id: currentTenant.id,
-        meta_account_id: formData.adAccountId,
-        meta_account_name: formData.adAccountName || null,
-        facebook_page_id: formData.pageId || null,
-        facebook_page_name: formData.pageName || null,
-        whatsapp_phone_number_id: formData.phoneNumberId || null,
-        whatsapp_display_number: formData.phoneDisplay || phoneNumbers.find(p => p.id === formData.phoneNumberId)?.display_number || null,
-        instagram_account_id: formData.instagramAccountId || null,
-        instagram_username: formData.instagramUsername || null,
-        pixel_id: formData.pixelId || null,
-        pixel_name: formData.pixelName || null,
-        business_id: formData.businessId || null,
-        business_name: formData.businessName || null,
-        meta_access_token: longLivedToken || null,
-        scopes_granted: grantedScopes,
-        status: 'connected' as const,
-        is_active: true,
-        connected_by: user?.id || null,
-      }, { onConflict: 'workspace_id,meta_account_id' });
-
-      if (error) throw error;
-      queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts-leadforms'] });
-      queryClient.invalidateQueries({ queryKey: ['meta-ad-campaigns'] });
+      await callFbLogin({
+        action: 'save',
+        pendingId,
+        selection: {
+          ...formData,
+          phoneDisplay: formData.phoneDisplay || phoneNumbers.find(p => p.id === formData.phoneNumberId)?.display_number || '',
+        },
+      });
+      setPendingId('');
+      invalidateMetaQueries();
       window.dispatchEvent(new CustomEvent('meta-account-changed', { detail: { action: 'connect' } }));
       toast.success('Meta Ads connected successfully!');
       navigate('/meta-ads');
@@ -567,6 +527,19 @@ export default function MetaAdsSetup() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Connection check (from Reconnect / Refresh Assets) */}
+          {hasExistingConnection && fbConnected && diagnosis && (
+            <MetaConnectionDiagnosis diagnosis={diagnosis} onReconnect={handleFbLogin} reconnecting={isFbLoading} />
+          )}
+          {hasExistingConnection && fbConnected && !diagnosis && (
+            <div className="flex justify-end">
+              <Button type="button" variant="ghost" size="sm" onClick={handleRefreshAssets} disabled={isRefreshing} className="text-xs gap-1.5 h-7">
+                {isRefreshing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Shield className="h-3.5 w-3.5" />}
+                Check Facebook connection
+              </Button>
+            </div>
           )}
 
           {/* CTWA Tracking Toggle */}
@@ -741,7 +714,7 @@ export default function MetaAdsSetup() {
                         </p>
                       </div>
                       <div className="flex flex-wrap justify-center gap-1.5">
-                        {['ads_read', 'pages_show_list', 'leads_retrieval', 'pages_manage_ads'].map((s) => (
+                        {['ads_read', 'ads_management', 'pages_show_list', 'leads_retrieval', 'pages_manage_ads'].map((s) => (
                           <Badge key={s} variant="outline" className="text-[10px] gap-1">
                             <Shield className="h-2.5 w-2.5" /> {s}
                           </Badge>
@@ -751,7 +724,9 @@ export default function MetaAdsSetup() {
                         {isFbLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Facebook className="h-5 w-5" />}
                         {isFbLoading ? 'Connecting…' : fbConnected ? 'Re-login Facebook' : 'Continue with Facebook'}
                       </Button>
-                      {fbConnected && (
+                      {fbConnected && diagnosis ? (
+                        <MetaConnectionDiagnosis diagnosis={diagnosis} compact />
+                      ) : fbConnected && (
                         <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1">
                           <CheckCircle2 className="h-3.5 w-3.5" /> Connected — found {adAccounts.length} ad account(s), {pages.length} page(s)
                         </p>
@@ -781,7 +756,9 @@ export default function MetaAdsSetup() {
                         </h2>
                         <p className="text-sm text-muted-foreground mt-0.5">Pick the ad account that runs your Click-to-WhatsApp campaigns.</p>
                       </div>
-                      {adAccountsError && (
+                      {diagnosis && diagnosis.severity !== 'ok' ? (
+                        <MetaConnectionDiagnosis diagnosis={diagnosis} onReconnect={handleFbLogin} reconnecting={isFbLoading} />
+                      ) : adAccountsError && (
                         <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/30">
                           <AlertCircle className="h-4 w-4 text-amber-600" />
                           <AlertDescription className="text-amber-700 text-xs">{adAccountsError}</AlertDescription>

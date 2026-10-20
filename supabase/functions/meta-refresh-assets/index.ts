@@ -48,15 +48,16 @@ Deno.serve(async (req) => {
 
     // Refresh pages
     try {
-      const res = await fetch(`${GRAPH}/me/accounts?fields=id,name,category,access_token&access_token=${accessToken}`);
+      const res = await fetch(`${GRAPH}/me/accounts?fields=id,name,category&access_token=${accessToken}`);
       const data = await res.json();
-      assets.pages = data.data || [];
+      // Never return Page access tokens to the browser
+      assets.pages = (data.data || []).map((p: any) => ({ id: p.id, name: p.name, category: p.category }));
     } catch { assets.pages = []; }
 
     // Refresh Instagram accounts (via page)
-    if (account.page_id) {
+    if (account.facebook_page_id) {
       try {
-        const res = await fetch(`${GRAPH}/${account.page_id}?fields=instagram_business_account{id,username,name,profile_picture_url}&access_token=${accessToken}`);
+        const res = await fetch(`${GRAPH}/${account.facebook_page_id}?fields=instagram_business_account{id,username,name,profile_picture_url}&access_token=${accessToken}`);
         const data = await res.json();
         if (data.instagram_business_account) {
           updates.instagram_account_id = data.instagram_business_account.id;
