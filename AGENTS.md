@@ -1,3 +1,5 @@
 # Project rules
 
 - Workspace-scoped Meta (Facebook) data syncs (lead forms, pages, leads) must use only that workspace's own connected token from `smeksh_meta_ad_accounts`; never fall back to the platform `META_SYSTEM_USER_TOKEN`. Why: the platform token belongs to another business and leaks its Pages/forms into unconnected workspaces.
+- Facebook tokens are server-only: browsers never receive, send or store them. Connect/reconnect/refresh/save go through the `meta-ads-fb-login` edge function (pending tokens in `meta_oauth_pending`), and the browser selects `smeksh_meta_ad_accounts` only via `META_AD_ACCOUNT_PUBLIC_COLUMNS` (column privileges block `meta_access_token` and `select('*')`). Why: any workspace member could previously read the token, and a browser-written Page ID could route another business's leads.
+- Meta connection problems are classified by `supabase/functions/_shared/metaAdsDiagnosis.ts` (unit-tested in `src/test/meta-ads-diagnosis.test.ts`); add new causes there instead of ad-hoc UI messages. Why: one source of truth for customer-facing recovery steps.
