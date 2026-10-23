@@ -21,6 +21,15 @@ Deno.serve(async (req) => {
   out.phones = await get(`${w!.waba_id}/phone_numbers?fields=id,display_phone_number,status`);
   const pr = await fetch(`${G}/661674340360654/messages`, { method: "POST", headers: { Authorization: `Bearer ${tok}`, "content-type": "application/json" }, body: JSON.stringify({ messaging_product: "whatsapp", to: "1", type: "text", text: { body: "x" } }) });
   out.probe_send = await pr.json();
+  const sys = Deno.env.get("META_SYSTEM_USER_TOKEN");
+  if (sys) {
+    const pr2 = await fetch(`${G}/661674340360654/messages`, { method: "POST", headers: { Authorization: `Bearer ${sys}`, "content-type": "application/json" }, body: JSON.stringify({ messaging_product: "whatsapp", to: "1", type: "text", text: { body: "x" } }) });
+    out.probe_sys = await pr2.json();
+    const dbg2 = await get(`debug_token?input_token=${encodeURIComponent(sys)}`, appTok);
+    out.sys_debug = { type: dbg2?.data?.type, valid: dbg2?.data?.is_valid, scopes: dbg2?.data?.granular_scopes };
+  }
+  out.app_perms = await get(`${Deno.env.get("META_APP_ID")}/permissions`, appTok);
+  out.app_info = await get(`${Deno.env.get("META_APP_ID")}?fields=name,restrictions,business`, appTok);
   out.app_id = Deno.env.get("META_APP_ID");
   return new Response(JSON.stringify(out, null, 1), { headers: { "content-type": "application/json" } });
 });
