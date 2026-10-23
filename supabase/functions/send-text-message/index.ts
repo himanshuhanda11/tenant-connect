@@ -277,11 +277,16 @@ Deno.serve(async (req) => {
         userFacingError = 'Messaging permission is not ready yet for this number. If you just reconnected/recreated the workspace, wait 10–30 minutes and try again. If it still fails, reconnect the number.';
         errorCodeStr = 'MISSING_MESSAGING_PERMISSION';
         // Do NOT revert status to pending — keep 'connected' so the user can retry without re-connecting.
+      } else if (errorCode === 131005 || errorCode === 190 || errorCode === 10) {
+        // Meta accepted the token for reading but refuses to send: Aireatro's messaging access
+        // to this WhatsApp account was removed/changed in the customer's Meta Business settings.
+        userFacingError = 'WhatsApp refused to send from this number (Meta: access denied). Aireatro’s messaging access to this WhatsApp account was removed or changed in Meta. Please reconnect the number from Phone Numbers.';
+        errorCodeStr = 'MISSING_MESSAGING_PERMISSION';
       }
 
       supabase.from('messages').update({
         status: 'failed', failed_at: new Date().toISOString(),
-        error_code: errorCodeStr, error_message: errorMsg,
+        error_code: errorCode?.toString() ?? errorCodeStr, error_message: errorMsg,
       }).eq('id', messageId).then(() => {});
 
       return new Response(JSON.stringify({ ok: false, message_id: messageId, error: userFacingError, code: errorCodeStr }), {

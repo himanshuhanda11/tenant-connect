@@ -1149,7 +1149,7 @@ export function useInboxActions() {
       const contactWaId = (conv.contact as any)?.wa_id;
       if (!contactWaId) throw new Error('Contact wa_id not found');
 
-      const { data, error } = await supabase.functions.invoke('send-text-message', {
+      let { data, error } = await supabase.functions.invoke('send-text-message', {
         body: {
           tenant_id: currentTenant.id,
           phone_number_id: conv.phone_number_id,
@@ -1160,10 +1160,18 @@ export function useInboxActions() {
         }
       });
 
+      // Non-2xx responses still carry a JSON body with the real reason — read it.
+      if (error && (error as any).context && typeof (error as any).context.json === 'function') {
+        try {
+          const body = await (error as any).context.json();
+          if (body?.error) { data = body; error = null; }
+        } catch { /* keep original error */ }
+      }
+
       if (error) throw error;
       if (data?.error) {
         if (data.code === 'MISSING_MESSAGING_PERMISSION') {
-          toast.error('WhatsApp token expired or missing permissions. Please go to Phone Numbers and reconnect your number.', { duration: 8000 });
+          toast.error(data.error || 'WhatsApp token expired or missing permissions. Please go to Phone Numbers and reconnect your number.', { duration: 10000 });
         } else if (data.code === 'OUTSIDE_24H') {
           toast.error('Cannot send: no inbound message within 24 hours. Use a template instead.');
         } else if (data.code === 'LIMIT_EXCEEDED') {
