@@ -19,6 +19,8 @@ Deno.serve(async (req) => {
   out.health_phone = await get(`661674340360654?fields=display_phone_number,verified_name,status,code_verification_status,quality_rating,platform_type,throughput,name_status,health_status,account_mode`);
   out.subscribed = await get(`${w!.waba_id}/subscribed_apps`);
   out.phones = await get(`${w!.waba_id}/phone_numbers?fields=id,display_phone_number,status`);
+  const pr = await fetch(`${G}/661674340360654/messages`, { method: "POST", headers: { Authorization: `Bearer ${tok}`, "content-type": "application/json" }, body: JSON.stringify({ messaging_product: "whatsapp", to: "1", type: "text", text: { body: "x" } }) });
+  out.probe_send = await pr.json();
   out.app_id = Deno.env.get("META_APP_ID");
   return new Response(JSON.stringify(out, null, 1), { headers: { "content-type": "application/json" } });
 });
