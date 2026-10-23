@@ -20,8 +20,8 @@ Deno.serve(async () => {
   out.assigned = await j(`${G}/${w!.waba_id}/assigned_users?business=982643213915017&access_token=${encodeURIComponent(tok)}`);
   out.me_biz = await j(`${G}/me/assigned_business_asset_groups?access_token=${encodeURIComponent(tok)}`);
   out.me_wabas = await j(`${G}/me/assigned_whatsapp_business_accounts?access_token=${encodeURIComponent(tok)}`);
-  out.templates = await j(`${G}/${w!.waba_id}/message_templates?limit=1&fields=name,status&access_token=${encodeURIComponent(tok)}`);
-  const pr = await fetch(`${G}/661674340360654/messages`, { method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ messaging_product: 'whatsapp', to: '0', type: 'text', text: { body: 'x' } }) });
+  out.phones = await j(`${G}/${w!.waba_id}/phone_numbers?fields=id,display_phone_number,status,health_status&access_token=${encodeURIComponent(tok)}`); if ((out.phones as any).body?.paging) delete (out.phones as any).body.paging;
+  const pr = await fetch(`${G}/661674340360654/messages`, { method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ messaging_product: 'whatsapp', to: '971500000000', type: 'text', text: { body: 'x' } }) });
   out.probe_send = { status: pr.status, body: await pr.json() };
   if (false) {
     const sd = await j(`${G}/debug_token?input_token=${encodeURIComponent(sysTok)}&access_token=${encodeURIComponent(appTok)}`);
