@@ -17,7 +17,13 @@ Deno.serve(async () => {
   out.phone = await j(`${G}/661674340360654?fields=id,display_phone_number,verified_name,status,code_verification_status,quality_rating,messaging_limit_tier,name_status,account_mode,platform_type,throughput&access_token=${encodeURIComponent(tok)}`);
   out.waba = await j(`${G}/${w!.waba_id}?fields=id,name,account_review_status,business_verification_status,health_status&access_token=${encodeURIComponent(tok)}`);
   out.waba_apps = await j(`${G}/${w!.waba_id}/subscribed_apps?access_token=${encodeURIComponent(tok)}`);
-  if (sysTok) {
+  out.assigned = await j(`${G}/${w!.waba_id}/assigned_users?business=982643213915017&access_token=${encodeURIComponent(tok)}`);
+  out.me_biz = await j(`${G}/me/assigned_business_asset_groups?access_token=${encodeURIComponent(tok)}`);
+  out.me_wabas = await j(`${G}/me/assigned_whatsapp_business_accounts?access_token=${encodeURIComponent(tok)}`);
+  out.templates = await j(`${G}/${w!.waba_id}/message_templates?limit=1&fields=name,status&access_token=${encodeURIComponent(tok)}`);
+  const pr = await fetch(`${G}/661674340360654/messages`, { method: 'POST', headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ messaging_product: 'whatsapp', to: '0', type: 'text', text: { body: 'x' } }) });
+  out.probe_send = { status: pr.status, body: await pr.json() };
+  if (false) {
     const sd = await j(`${G}/debug_token?input_token=${encodeURIComponent(sysTok)}&access_token=${encodeURIComponent(appTok)}`);
     out.sys_debug = { type: sd.body?.data?.type, is_valid: sd.body?.data?.is_valid, user_id: sd.body?.data?.user_id, scopes: sd.body?.data?.scopes, granular_scopes: sd.body?.data?.granular_scopes };
     out.sys_phone = await j(`${G}/661674340360654?fields=id,display_phone_number,status,health_status&access_token=${encodeURIComponent(sysTok)}`);
