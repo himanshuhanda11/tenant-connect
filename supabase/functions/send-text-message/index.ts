@@ -286,7 +286,7 @@ Deno.serve(async (req) => {
 
       supabase.from('messages').update({
         status: 'failed', failed_at: new Date().toISOString(),
-        error_code: errorCodeStr, error_message: errorMsg,
+        error_code: errorCode?.toString() ?? errorCodeStr, error_message: errorMsg,
       }).eq('id', messageId).then(() => {});
 
       return new Response(JSON.stringify({ ok: false, message_id: messageId, error: userFacingError, code: errorCodeStr }), {
