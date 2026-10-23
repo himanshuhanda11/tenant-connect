@@ -30,6 +30,11 @@ Deno.serve(async (req) => {
   }
   out.app_perms = await get(`${Deno.env.get("META_APP_ID")}/permissions`, appTok);
   out.app_info = await get(`${Deno.env.get("META_APP_ID")}?fields=name,restrictions,business`, appTok);
+  const pr3 = await fetch(`${G}/928405017030832/messages`, { method: "POST", headers: { Authorization: `Bearer ${tok}`, "content-type": "application/json" }, body: JSON.stringify({ messaging_product: "whatsapp", to: "1", type: "text", text: { body: "x" } }) });
+  out.probe_other_phone = await pr3.json();
+  out.assigned = await get(`${w!.waba_id}/assigned_users?business=982643213915017`);
+  out.waba_more = await get(`${w!.waba_id}?fields=primary_funding_id,currency,timezone_id,message_template_namespace,ownership_type,is_enabled_for_insights,status`);
+  out.me = await get(`me?fields=id,name`);
   out.app_id = Deno.env.get("META_APP_ID");
   return new Response(JSON.stringify(out, null, 1), { headers: { "content-type": "application/json" } });
 });
