@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { automationMatchesAd, getTargetAdIds } from '../_shared/metaAdTargeting.ts';
+import { verifyMetaSignature } from '../_shared/metaSignature.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
