@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { automationMatchesAd, getTargetAdIds } from '../_shared/metaAdTargeting.ts';
+import { verifyMetaSignature } from '../_shared/metaSignature.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -74,34 +75,18 @@ async function verifySignature(rawBody: string, signatureHeader: string | null):
     return false;
   }
 
-  const parts = signatureHeader.split('=');
-  const algo = parts[0];
-  const theirSig = parts.slice(1).join('=');
-  if (algo !== 'sha256' || !theirSig) {
-    console.log('Invalid signature format');
-    return false;
+  if (await verifyMetaSignature(rawBody, signatureHeader, appSecret)) return true;
+
+  // The earlier Aireatro Meta app still delivers some WhatsApp accounts' webhooks
+  // to this URL, signed with its own secret. Accept those too (still HMAC-verified).
+  const legacySecret = Deno.env.get('META_APP_SECRET_LEGACY');
+  if (legacySecret && await verifyMetaSignature(rawBody, signatureHeader, legacySecret)) {
+    console.log('Signature verified with legacy Meta app secret');
+    return true;
   }
 
-  // Use Web Crypto API for HMAC
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(appSecret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  
-  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(rawBody));
-  const ourSig = Array.from(new Uint8Array(signature))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-
-  if (ourSig.length !== theirSig.length || ourSig !== theirSig) {
-    console.warn('Signature mismatch - rejecting');
-    return false;
-  }
-  return true;
+  console.warn('Signature mismatch - rejecting');
+  return false;
 }
 
 // Extract normalized events from Meta webhook payload
@@ -371,6 +356,17 @@ Deno.serve(async (req) => {
         origin = JSON.stringify({ object: p?.object, entry_id: entry?.id, field: entry?.changes?.[0]?.field, phone_number_id: entry?.changes?.[0]?.value?.metadata?.phone_number_id });
       } catch { /* ignore */ }
       console.error(`Invalid webhook signature origin=${origin}`);
+      // TEMP diagnosis: keep a few rejected deliveries (server-only table) to identify the signing key.
+      try {
+        const diag = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+        const { count } = await diag.from('webhook_signature_rejections').select('id', { count: 'exact', head: true });
+        if ((count ?? 0) < 5) {
+          await diag.from('webhook_signature_rejections').insert({
+            signature: JSON.stringify({ s256: signatureHeader, s1: req.headers.get('x-hub-signature'), ua: req.headers.get('user-agent') }),
+            body: rawBody,
+          });
+        }
+      } catch { /* ignore */ }
       return new Response(JSON.stringify({ error: 'Invalid signature' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

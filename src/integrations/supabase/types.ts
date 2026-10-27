@@ -17783,6 +17783,27 @@ export type Database = {
           },
         ]
       }
+      webhook_signature_rejections: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          signature: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          signature?: string | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          signature?: string | null
+        }
+        Relationships: []
+      }
       whatsapp_greeting_templates: {
         Row: {
           agent_user_id: string | null
