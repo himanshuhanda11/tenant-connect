@@ -75,13 +75,18 @@ async function verifySignature(rawBody: string, signatureHeader: string | null):
     return false;
   }
 
-  const matched = await verifyMetaSignature(rawBody, signatureHeader, appSecret);
-  if (!matched) {
-    console.warn('Signature mismatch - rejecting');
-    return false;
+  if (await verifyMetaSignature(rawBody, signatureHeader, appSecret)) return true;
+
+  // The earlier Aireatro Meta app still delivers some WhatsApp accounts' webhooks
+  // to this URL, signed with its own secret. Accept those too (still HMAC-verified).
+  const legacySecret = Deno.env.get('META_APP_SECRET_LEGACY');
+  if (legacySecret && await verifyMetaSignature(rawBody, signatureHeader, legacySecret)) {
+    console.log('Signature verified with legacy Meta app secret');
+    return true;
   }
-  if (matched !== 'raw') console.log(`Signature verified via ${matched} body form`);
-  return true;
+
+  console.warn('Signature mismatch - rejecting');
+  return false;
 }
 
 // Extract normalized events from Meta webhook payload
