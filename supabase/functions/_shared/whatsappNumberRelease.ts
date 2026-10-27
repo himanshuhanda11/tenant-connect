@@ -61,7 +61,7 @@ export async function releasePhoneFromMeta(
     coexistence,
   };
 
-  const token: string | undefined = waba?.encrypted_access_token || Deno.env.get('META_SYSTEM_USER_TOKEN') || undefined;
+  const token: string | undefined = waba?.encrypted_access_token || (globalThis as any).Deno?.env?.get('META_SYSTEM_USER_TOKEN') || undefined;
 
   // Never deregister a number another Aireatro workspace is actively using.
   const { data: sameNumberElsewhere } = await supabase
