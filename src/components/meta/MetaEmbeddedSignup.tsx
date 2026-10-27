@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Loader2, Smartphone, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { MessageSquare, Loader2, Smartphone, CheckCircle2, AlertTriangle, PhoneCall } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { toast } from 'sonner';
@@ -271,7 +271,7 @@ export function MetaEmbeddedSignup({ defaultMode = 'standard', onSuccess, onErro
         {loadingMode === defaultMode ? (
           <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{defaultMode === 'coexistence' ? 'Reconnecting…' : 'Connecting to WhatsApp...'}</>
         ) : (
-          <><MessageSquare className="w-4 h-4 mr-2" />{defaultMode === 'coexistence' ? 'Reconnect authorization' : 'Login with Facebook'}</>
+          <><MessageSquare className="w-4 h-4 mr-2" />{defaultMode === 'coexistence' ? 'Reconnect authorization' : 'Login with Facebook · add new number'}</>
         )}
       </Button>
 
@@ -317,7 +317,43 @@ export function MetaEmbeddedSignup({ defaultMode = 'standard', onSuccess, onErro
             Reconnecting reuses your existing WABA and phone number — you won't need to re-enter business details.
           </p>
         )}
+        <p className="text-[11px] text-muted-foreground">
+          Only for a number already active in the WhatsApp Business app. Meta does <span className="font-medium text-foreground">not</span> send a text or call code here — you confirm inside the app.
+        </p>
       </div>
+
+      {defaultMode === 'coexistence' && (
+        <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="rounded-md bg-primary/10 p-2">
+              <PhoneCall className="w-4 h-4 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-semibold">Add a new number</h4>
+              <p className="text-xs text-muted-foreground mt-1">
+                Bought a new number, or it's not on the WhatsApp app? Use this. Meta will send a 6-digit code by text or phone call.
+              </p>
+              {existingCoexistence?.displayNumber && (
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Each workspace has one number — this replaces {existingCoexistence.displayNumber} here.
+                </p>
+              )}
+            </div>
+          </div>
+          <Button
+            type="button"
+            onClick={(e) => launchSignup('standard', e)}
+            disabled={loadingMode !== null}
+            className="w-full"
+          >
+            {loadingMode === 'standard' ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Connecting to WhatsApp...</>
+            ) : (
+              <><PhoneCall className="w-4 h-4 mr-2" />Add new number (code by text or call)</>
+            )}
+          </Button>
+        </div>
+      )}
 
       <p className="text-xs text-muted-foreground text-center">
         A popup will open for you to authorize your WhatsApp Business Account.
