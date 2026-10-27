@@ -675,6 +675,25 @@ async function processInboundMessage(
     conversationId = existingConv.id;
   }
 
+  // Remember which Click-to-WhatsApp ad this chat came from, so workspaces can
+  // route leads per ad even when Meta ad-account access is not available.
+  if (referralData?.source_id) {
+    try {
+      await supabase.rpc('record_ctwa_ad_click', {
+        _tenant_id: tenantId,
+        _ad_id: String(referralData.source_id),
+        _headline: referralData.headline || null,
+        _body: referralData.body || null,
+        _source_url: referralData.source_url || null,
+        _media_type: referralData.media_type || null,
+        _image_url: referralData.image_url || referralData.thumbnail_url || null,
+        _is_new_lead: isBrandNewContact,
+      });
+    } catch (e) {
+      console.error('record_ctwa_ad_click failed:', e);
+    }
+  }
+
   // Auto-reply BEFORE routing so the welcome message fires while conversation is unassigned
   // (exclude_assigned=true would skip auto-reply if routed first)
   if (isNewConversation) {
@@ -682,6 +701,17 @@ async function processInboundMessage(
       await handleAutoReply(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
     } catch (e) {
       console.error('Pre-route auto-reply error:', e);
+    }
+  }
+
+  // ─── Meta Ad Automations (CTWA) ───
+  // Runs BEFORE general routing so an ad-specific agent assignment wins over
+  // the workspace-wide round robin. General routing still assigns anything left.
+  if (isNewConversation) {
+    try {
+      await handleMetaAdAutomations(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
+    } catch (e) {
+      console.error('Meta ad automation error:', e);
     }
   }
 
@@ -715,16 +745,6 @@ async function processInboundMessage(
       }
     } catch (e) {
       console.error('Auto-route exception:', e);
-    }
-  }
-
-  // ─── Meta Ad Automations (CTWA) ───
-  // If this is a Click-to-WhatsApp ad message, run matching ad automations
-  if (isNewConversation) {
-    try {
-      await handleMetaAdAutomations(supabase, tenantId, phoneNumberId, conversationId, contactId, ev);
-    } catch (e) {
-      console.error('Meta ad automation error:', e);
     }
   }
 
