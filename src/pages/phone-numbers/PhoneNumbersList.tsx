@@ -55,6 +55,16 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { usePhoneNumbers } from '@/hooks/usePhoneNumbers';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { 
   PhoneNumber, 
   NumberStatus,
@@ -79,7 +89,13 @@ interface Filters {
 
 export default function PhoneNumbersList() {
   const navigate = useNavigate();
-  const { phoneNumbers, loading, setDefaultNumber, disconnectNumber, refetch } = usePhoneNumbers();
+  const { phoneNumbers: allPhoneNumbers, loading, setDefaultNumber, disconnectNumber, refetch } = usePhoneNumbers();
+  const [confirmDisconnect, setConfirmDisconnect] = useState<PhoneNumber | null>(null);
+  // One number per workspace: once a number is active, hide older released numbers.
+  const phoneNumbers = useMemo(() => {
+    const active = allPhoneNumbers.filter(n => n.status !== 'disconnected');
+    return active.length > 0 ? active : allPhoneNumbers;
+  }, [allPhoneNumbers]);
   const isMobile = useIsMobile();
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
@@ -171,7 +187,7 @@ export default function PhoneNumbersList() {
         navigate('/phone-numbers/connect');
         break;
       case 'disconnect':
-        disconnectNumber(number.id);
+        setConfirmDisconnect(number);
         break;
     }
   };
@@ -717,6 +733,29 @@ export default function PhoneNumbersList() {
           </Card>
         )}
       </div>
+
+      <AlertDialog open={!!confirmDisconnect} onOpenChange={(open) => !open && setConfirmDisconnect(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Disconnect {confirmDisconnect?.phone_e164 || 'this number'}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Aireatro will release this number from WhatsApp in Meta. It will stop sending and receiving messages here, and can then be used in another account or app. Your chat history stays in Aireatro.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (confirmDisconnect) disconnectNumber(confirmDisconnect.id);
+                setConfirmDisconnect(null);
+              }}
+            >
+              Disconnect and release
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }
