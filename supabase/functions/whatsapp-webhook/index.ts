@@ -362,7 +362,15 @@ Deno.serve(async (req) => {
     // Verify signature
     const isValid = await verifySignature(rawBody, signatureHeader);
     if (!isValid) {
-      console.error('Invalid webhook signature');
+      // Log only non-sensitive routing info so a rotated Meta App Secret or a
+      // foreign app's subscription can be told apart. The body is NOT trusted.
+      let origin = 'unparsed';
+      try {
+        const p = JSON.parse(rawBody);
+        const entry = p?.entry?.[0];
+        origin = JSON.stringify({ object: p?.object, entry_id: entry?.id, field: entry?.changes?.[0]?.field, phone_number_id: entry?.changes?.[0]?.value?.metadata?.phone_number_id });
+      } catch { /* ignore */ }
+      console.error(`Invalid webhook signature origin=${origin}`);
       return new Response(JSON.stringify({ error: 'Invalid signature' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
