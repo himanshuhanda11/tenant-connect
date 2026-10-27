@@ -1085,6 +1085,9 @@ export default function MetaAdsAutomations() {
                   <p className="text-[11px] text-muted-foreground">
                     Select 2+ agents — leads rotate equally
                   </p>
+                  {members.length < 2 && (
+                    <p className="text-[11px] text-warning">This workspace has only {members.length} member. Add agents in Team first.</p>
+                  )}
                   <div className="grid grid-cols-1 gap-1 max-h-40 overflow-y-auto border rounded-lg p-2 bg-muted/20">
                     {members.map(m => {
                       const agentId = m.user_id || m.id;
