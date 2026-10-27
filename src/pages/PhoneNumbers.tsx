@@ -242,14 +242,14 @@ export default function PhoneNumbers() {
                     <DialogTrigger asChild>
                       <Button variant="outline">
                         <RefreshCw className="w-4 h-4 mr-2" />
-                        Reconnect
+                        Reconnect / Add number
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md">
                       <DialogHeader>
-                        <DialogTitle>Reconnect WhatsApp Business</DialogTitle>
+                        <DialogTitle>Reconnect or add a number</DialogTitle>
                         <DialogDescription>
-                          Re-authenticate your existing WhatsApp Business Account. Each workspace supports one phone number.
+                          Reconnect your current number, or add a new one. Each workspace supports one phone number.
                         </DialogDescription>
                       </DialogHeader>
                       <div className="py-4">
