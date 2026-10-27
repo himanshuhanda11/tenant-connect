@@ -1,0 +1,1 @@
+COMMENT ON TABLE public.webhook_signature_rejections IS 'DEPRECATED: temporary signature-diagnosis capture, no longer written; safe to drop.';
