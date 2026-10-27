@@ -55,12 +55,17 @@ import {
   Megaphone,
   MousePointerClick,
   Radio,
+  MessageCircle,
+  Check,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
 import { useTeamMembers, useTeams } from '@/hooks/useTeam';
+import { useWhatsAppAdSources, adSourceLabel, type WhatsAppAdSource } from '@/hooks/useWhatsAppAdSources';
 
 interface DbAutomation {
   id: string;
@@ -106,6 +111,7 @@ export default function MetaAdsAutomations() {
   const { templates } = useTemplates();
   const { tags } = useTags();
   const { workflows } = useAutomationWorkflows();
+  const { adSources, rename: renameAdSource } = useWhatsAppAdSources();
 
   const [automations, setAutomations] = useState<DbAutomation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -116,12 +122,15 @@ export default function MetaAdsAutomations() {
   const [campaignSearch, setCampaignSearch] = useState('');
   const [campaignStatus, setCampaignStatus] = useState<'all' | 'active' | 'off'>('all');
   const [syncing, setSyncing] = useState(false);
+  const [renamingAdId, setRenamingAdId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
 
   // Form state
   const [formName, setFormName] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formTrigger, setFormTrigger] = useState('new_lead');
   const [formCampaignIds, setFormCampaignIds] = useState<string[]>([]);
+  const [formAdIds, setFormAdIds] = useState<string[]>([]);
   const [formAssignMode, setFormAssignMode] = useState<'none' | 'agent' | 'team' | 'roundrobin'>('none');
   const [formAssignAgent, setFormAssignAgent] = useState('');
   const [formAssignTeam, setFormAssignTeam] = useState('');
@@ -253,11 +262,25 @@ export default function MetaAdsAutomations() {
     })
     .sort((a, b) => Number(isActiveAd(b.status)) - Number(isActiveAd(a.status)) || a.name.localeCompare(b.name));
 
+  const getAutomationAdIds = (auto: DbAutomation): string[] => {
+    const raw = (auto.trigger_conditions as { meta_ad_ids?: unknown } | null)?.meta_ad_ids;
+    return Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string' && v.length > 0) : [];
+  };
+
+  const adSourceById = new Map(adSources.map(ad => [ad.ad_id, ad]));
+  const automationsByAdId = new Map<string, DbAutomation[]>();
+  automations.forEach(auto => {
+    getAutomationAdIds(auto).forEach(adId => {
+      automationsByAdId.set(adId, [...(automationsByAdId.get(adId) || []), auto]);
+    });
+  });
+
   const resetForm = () => {
     setFormName('');
     setFormDescription('');
     setFormTrigger('new_lead');
     setFormCampaignIds([]);
+    setFormAdIds([]);
     setFormAssignMode('none');
     setFormAssignAgent('');
     setFormAssignTeam('');
@@ -275,6 +298,7 @@ export default function MetaAdsAutomations() {
     setFormDescription(auto.description || '');
     setFormTrigger(auto.trigger_type);
     setFormCampaignIds(auto.trigger_campaign_ids || []);
+    setFormAdIds(getAutomationAdIds(auto));
     const actions = (auto.actions || []) as Record<string, unknown>[];
     
     // Restore action states
@@ -312,6 +336,27 @@ export default function MetaAdsAutomations() {
     resetForm();
     setEditingAutomation(null);
     setShowDialog(true);
+  };
+
+  const openCreateForAd = (ad: WhatsAppAdSource) => {
+    resetForm();
+    setEditingAutomation(null);
+    setFormName(`${adSourceLabel(ad)} → agents`);
+    setFormTrigger('ad_click');
+    setFormAdIds([ad.ad_id]);
+    setFormSendTemplate(false);
+    setFormAssignMode(members.length >= 2 ? 'roundrobin' : 'agent');
+    setShowDialog(true);
+  };
+
+  const saveRename = async (ad: WhatsAppAdSource) => {
+    try {
+      await renameAdSource(ad.id, renameValue);
+      toast.success('Ad name saved');
+      setRenamingAdId(null);
+    } catch {
+      toast.error('Only workspace admins can rename ads');
+    }
   };
 
   const openEdit = (auto: DbAutomation) => {
@@ -389,7 +434,10 @@ export default function MetaAdsAutomations() {
         trigger_type: formTrigger,
         trigger_ad_account_id: adAccountId,
         trigger_campaign_ids: formCampaignIds.length > 0 ? formCampaignIds : null,
-        trigger_conditions: {},
+        trigger_conditions: {
+          ...((editingAutomation?.trigger_conditions as Record<string, unknown>) || {}),
+          meta_ad_ids: formAdIds,
+        } as unknown as any,
         actions: actions as unknown as any,
       };
 
@@ -453,6 +501,10 @@ export default function MetaAdsAutomations() {
     setFormCampaignIds(prev =>
       prev.includes(campaignId) ? prev.filter(c => c !== campaignId) : [...prev, campaignId]
     );
+  };
+
+  const toggleAdSource = (adId: string) => {
+    setFormAdIds(prev => (prev.includes(adId) ? prev.filter(a => a !== adId) : [...prev, adId]));
   };
 
   const toggleRoundRobinAgent = (agentId: string) => {
