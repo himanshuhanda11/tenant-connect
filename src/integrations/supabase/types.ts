@@ -8661,6 +8661,7 @@ export type Database = {
           body: string | null
           clicks_count: number
           created_at: string
+          display_name: string | null
           first_seen_at: string
           headline: string | null
           id: string
@@ -8678,6 +8679,7 @@ export type Database = {
           body?: string | null
           clicks_count?: number
           created_at?: string
+          display_name?: string | null
           first_seen_at?: string
           headline?: string | null
           id?: string
@@ -8695,6 +8697,7 @@ export type Database = {
           body?: string | null
           clicks_count?: number
           created_at?: string
+          display_name?: string | null
           first_seen_at?: string
           headline?: string | null
           id?: string
