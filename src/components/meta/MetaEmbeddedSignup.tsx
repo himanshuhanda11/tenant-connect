@@ -66,7 +66,6 @@ export function MetaEmbeddedSignup({ defaultMode = 'standard', onSuccess, onErro
       .from('phone_numbers')
       .select('display_number')
       .eq('tenant_id', currentTenant.id)
-      .neq('status', 'disconnected')
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()

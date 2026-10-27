@@ -129,8 +129,9 @@ export async function keepOnlyPhone(supabase: any, tenantId: string, keepPhoneDb
     .from('phone_numbers')
     .select('id, phone_number_id, display_number')
     .eq('tenant_id', tenantId)
-    .neq('id', keepPhoneDbId)
-    .neq('status', 'disconnected');
+    .neq('id', keepPhoneDbId);
+  // Includes numbers already marked "disconnected" in Aireatro: older versions only
+  // changed the label, so the number may still be registered in Meta.
 
   const results: ReleaseResult[] = [];
   for (const other of others || []) {
