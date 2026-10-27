@@ -702,6 +702,7 @@ export default function MetaAdsAutomations() {
             )}
           </CardContent>
         </Card>
+        )}
 
         {/* Automations List */}
         <Card className="border-0 shadow-lg">
