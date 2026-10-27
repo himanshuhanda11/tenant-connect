@@ -280,7 +280,9 @@ Deno.serve(async (req) => {
         action: 'fetch_profile', meta_response: lastErr, status: 'failed',
         error_code: cls.code, error_message: cls.message,
       });
-      return json({ success: false, code: cls.code, error: cls.message, coexistence: isCoexistence, details: lastErr?.error?.message }, cls.http);
+      // Reading a profile is often a background load (workspace list, settings);
+      // report failures in the body with 200 so callers show a notice instead of crashing.
+      return json({ success: false, code: cls.code, error: cls.message, coexistence: isCoexistence, details: lastErr?.error?.message }, 200);
     }
 
     if (action === 'update') {
