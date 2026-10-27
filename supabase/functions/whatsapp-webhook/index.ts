@@ -75,33 +75,12 @@ async function verifySignature(rawBody: string, signatureHeader: string | null):
     return false;
   }
 
-  const parts = signatureHeader.split('=');
-  const algo = parts[0];
-  const theirSig = parts.slice(1).join('=');
-  if (algo !== 'sha256' || !theirSig) {
-    console.log('Invalid signature format');
-    return false;
-  }
-
-  // Use Web Crypto API for HMAC
-  const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(appSecret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-  
-  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(rawBody));
-  const ourSig = Array.from(new Uint8Array(signature))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-
-  if (ourSig.length !== theirSig.length || ourSig !== theirSig) {
+  const matched = await verifyMetaSignature(rawBody, signatureHeader, appSecret);
+  if (!matched) {
     console.warn('Signature mismatch - rejecting');
     return false;
   }
+  if (matched !== 'raw') console.log(`Signature verified via ${matched} body form`);
   return true;
 }
 
