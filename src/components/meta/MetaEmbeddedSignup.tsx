@@ -271,7 +271,7 @@ export function MetaEmbeddedSignup({ defaultMode = 'standard', onSuccess, onErro
         {loadingMode === defaultMode ? (
           <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{defaultMode === 'coexistence' ? 'Reconnecting…' : 'Connecting to WhatsApp...'}</>
         ) : (
-          <><MessageSquare className="w-4 h-4 mr-2" />{defaultMode === 'coexistence' ? 'Reconnect authorization' : 'Login with Facebook'}</>
+          <><MessageSquare className="w-4 h-4 mr-2" />{defaultMode === 'coexistence' ? 'Reconnect authorization' : 'Login with Facebook · add new number'}</>
         )}
       </Button>
 

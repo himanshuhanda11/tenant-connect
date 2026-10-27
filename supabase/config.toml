@@ -163,6 +163,3 @@ project_id = "fygwjpdasnhaomoqdvcu"
 
 
 
-
-[functions.tmp-crown-phone-diag]
-verify_jwt = false
