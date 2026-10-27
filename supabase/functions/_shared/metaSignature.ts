@@ -10,12 +10,12 @@ export function escapeUnicode(body: string): string {
   return body.replace(/[\u007f-\uffff]/g, (c) => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
 }
 
-export function signatureCandidates(rawBody: string): string[] {
+export function signatureCandidates(rawBody: string): Array<{ label: string; body: string }> {
   const escaped = escapeUnicode(rawBody);
-  const out = [rawBody];
-  if (escaped !== rawBody) out.push(escaped);
   const escapedSlashes = escaped.replace(/\//g, '\\/');
-  if (!out.includes(escapedSlashes)) out.push(escapedSlashes);
+  const out = [{ label: 'raw', body: rawBody }];
+  if (escaped !== rawBody) out.push({ label: 'escaped', body: escaped });
+  if (escapedSlashes !== escaped) out.push({ label: 'escaped_slashes', body: escapedSlashes });
   return out;
 }
 
@@ -43,12 +43,8 @@ export async function verifyMetaSignature(
   const [algo, ...rest] = signatureHeader.split('=');
   const theirSig = rest.join('=').toLowerCase();
   if (algo !== 'sha256' || !theirSig) return null;
-  const labels = ['raw', 'escaped', 'escaped_slashes'];
-  const candidates = signatureCandidates(rawBody);
-  for (let i = 0; i < candidates.length; i++) {
-    if (safeEqual(await hmacHex(appSecret, candidates[i]), theirSig)) {
-      return candidates.length === 2 && i === 1 ? 'escaped_slashes' : labels[i];
-    }
+  for (const c of signatureCandidates(rawBody)) {
+    if (safeEqual(await hmacHex(appSecret, c.body), theirSig)) return c.label;
   }
   return null;
 }
