@@ -351,6 +351,17 @@ Deno.serve(async (req) => {
         origin = JSON.stringify({ object: p?.object, entry_id: entry?.id, field: entry?.changes?.[0]?.field, phone_number_id: entry?.changes?.[0]?.value?.metadata?.phone_number_id });
       } catch { /* ignore */ }
       console.error(`Invalid webhook signature origin=${origin}`);
+      // TEMP diagnosis: keep a few rejected deliveries (server-only table) to identify the signing key.
+      try {
+        const diag = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+        const { count } = await diag.from('webhook_signature_rejections').select('id', { count: 'exact', head: true });
+        if ((count ?? 0) < 5) {
+          await diag.from('webhook_signature_rejections').insert({
+            signature: JSON.stringify({ s256: signatureHeader, s1: req.headers.get('x-hub-signature'), ua: req.headers.get('user-agent') }),
+            body: rawBody,
+          });
+        }
+      } catch { /* ignore */ }
       return new Response(JSON.stringify({ error: 'Invalid signature' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
