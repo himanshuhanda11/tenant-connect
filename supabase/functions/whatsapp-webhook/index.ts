@@ -3168,19 +3168,20 @@ async function handleMetaAdAutomations(
     const triggerMatch = checkMetaAdTrigger(automation, ev, referral);
     if (!triggerMatch) continue;
 
-    // Check campaign targeting
+    // Check campaign / ad targeting. Ads can be chosen from the synced Meta
+    // campaign list or directly from ads seen in WhatsApp clicks (no ads permission needed).
     const targetCampaignIds: string[] = automation.trigger_campaign_ids || [];
-    if (targetCampaignIds.length > 0) {
-      // Automation targets specific campaigns — check if any match
-      const hasMatch = referral 
-        ? targetCampaignIds.some((tid: string) => matchedInternalCampaignIds.includes(tid))
-        : false;
-      if (!hasMatch) {
-        console.log(`Meta ad automation "${automation.name}": campaign filter didn't match`);
-        continue;
-      }
+    const targetAdIds = getTargetAdIds(automation.trigger_conditions);
+    const hasMatch = automationMatchesAd({
+      targetCampaignIds,
+      targetAdIds,
+      matchedInternalCampaignIds,
+      referralSourceId: referral?.source_id ? String(referral.source_id) : null,
+    });
+    if (!hasMatch) {
+      console.log(`Meta ad automation "${automation.name}": campaign/ad filter didn't match`);
+      continue;
     }
-    // If targetCampaignIds is empty, automation applies to all campaigns
 
     console.log(`Meta ad automation "${automation.name}" triggered`);
 
