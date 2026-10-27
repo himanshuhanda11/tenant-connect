@@ -1,24 +1,23 @@
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// Temporary: checks whether META_APP_SECRET is still accepted by Meta. Returns no secrets.
+// Temporary diagnostic: which apps are subscribed to a WABA. Returns no secrets or tokens.
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.headers.get('x-check') !== 'aireatro-diag-7731') return new Response('no', { status: 404, headers: corsHeaders });
-  const appId = Deno.env.get('META_APP_ID') || '';
-  const secret = Deno.env.get('META_APP_SECRET') || '';
-  const url = `https://graph.facebook.com/v21.0/oauth/access_token?client_id=${appId}&client_secret=${encodeURIComponent(secret)}&grant_type=client_credentials`;
-  const r = await fetch(url);
-  const j = await r.json();
-  let appName: string | null = null;
-  if (j.access_token) {
-    const a = await fetch(`https://graph.facebook.com/v21.0/${appId}?fields=name&access_token=${encodeURIComponent(j.access_token)}`);
-    appName = (await a.json())?.name ?? null;
+  const wabaId = new URL(req.url).searchParams.get('waba') || '';
+  if (!/^\d{5,25}$/.test(wabaId)) return new Response('bad', { status: 400, headers: corsHeaders });
+  const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+  const { data: rows } = await sb.from('waba_accounts').select('id, tenant_id, waba_id, encrypted_access_token, updated_at, status').eq('waba_id', wabaId);
+  const out: any[] = [];
+  for (const row of rows || []) {
+    const tok = row.encrypted_access_token;
+    const r = await fetch(`https://graph.facebook.com/v21.0/${wabaId}/subscribed_apps?access_token=${encodeURIComponent(tok || '')}`);
+    const j = await r.json();
+    out.push({ tenant_id: row.tenant_id, status: row.status, updated_at: row.updated_at, subscribed_apps: j.data ?? null, error: j.error ? { code: j.error.code, message: j.error.message } : null });
   }
-  return new Response(JSON.stringify({
-    app_id: appId,
-    secret_length: secret.length,
-    secret_accepted: !!j.access_token,
-    app_name: appName,
-    error: j.error ? { code: j.error.code, message: j.error.message } : null,
-  }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  const sys = Deno.env.get('META_SYSTEM_USER_TOKEN') || '';
+  const r2 = await fetch(`https://graph.facebook.com/v21.0/${wabaId}/subscribed_apps?access_token=${encodeURIComponent(sys)}`);
+  const j2 = await r2.json();
+  return new Response(JSON.stringify({ rows: out, via_system_token: j2.data ?? j2.error?.message }, null, 2), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 });
