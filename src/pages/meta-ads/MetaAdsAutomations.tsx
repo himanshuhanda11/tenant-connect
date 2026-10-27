@@ -813,7 +813,7 @@ export default function MetaAdsAutomations() {
         <DialogContent className="sm:max-w-lg mx-4">
           <DialogHeader>
             <DialogTitle className="text-base">{editingAutomation ? 'Edit Automation' : 'Create Automation'}</DialogTitle>
-            <DialogDescription className="text-xs">Map campaigns to agents and actions</DialogDescription>
+            <DialogDescription className="text-xs">Pick ads, then choose who gets their leads</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
