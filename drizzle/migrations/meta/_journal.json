@@ -8,6 +8,13 @@
       "when": 1792529116865,
       "tag": "0000_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793136869568,
+      "tag": "0001_whatsapp_ad_sources",
+      "breakpoints": true
     }
   ]
 }
