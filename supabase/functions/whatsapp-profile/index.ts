@@ -43,6 +43,19 @@ function classifyMetaError(data: any, isCoexistence: boolean): {
       http: 429,
     };
   }
+  // The phone number ID no longer resolves to a WhatsApp number this token can see
+  // (number removed from the WhatsApp account, moved elsewhere, or access lost).
+  // Soft fail so background profile loads never break the page.
+  if (
+    metaCode === 100 &&
+    /nonexisting field \(whatsapp_business_profile\)|does not exist|unsupported get request/i.test(msg)
+  ) {
+    return {
+      code: 'phone_not_found',
+      message: 'Meta no longer finds this WhatsApp number in the connected WhatsApp account. Reconnect the number from Phone Numbers, or disconnect it if it is no longer used.',
+      http: 200,
+    };
+  }
   if (metaCode === 200 || metaCode === 10 || /permission/i.test(msg)) {
     if (isCoexistence) {
       return {
@@ -267,7 +280,9 @@ Deno.serve(async (req) => {
         action: 'fetch_profile', meta_response: lastErr, status: 'failed',
         error_code: cls.code, error_message: cls.message,
       });
-      return json({ success: false, code: cls.code, error: cls.message, coexistence: isCoexistence, details: lastErr?.error?.message }, cls.http);
+      // Reading a profile is often a background load (workspace list, settings);
+      // report failures in the body with 200 so callers show a notice instead of crashing.
+      return json({ success: false, code: cls.code, error: cls.message, coexistence: isCoexistence, details: lastErr?.error?.message }, 200);
     }
 
     if (action === 'update') {
