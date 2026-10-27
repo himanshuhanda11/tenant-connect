@@ -98,17 +98,7 @@ async function verifySignature(rawBody: string, signatureHeader: string | null):
     .join('');
 
   if (ourSig.length !== theirSig.length || ourSig !== theirSig) {
-    // Diagnostic only: report whether another configured app secret would match.
-    const alt: Record<string, boolean> = {};
-    for (const name of ['INSTAGRAM_APP_SECRET', 'PLATFORM_WEBHOOK_SECRET']) {
-      const s = Deno.env.get(name);
-      if (!s) continue;
-      const k = await crypto.subtle.importKey('raw', encoder.encode(s), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-      const sig = Array.from(new Uint8Array(await crypto.subtle.sign('HMAC', k, encoder.encode(rawBody))))
-        .map(b => b.toString(16).padStart(2, '0')).join('');
-      alt[name] = sig === theirSig;
-    }
-    console.warn(`Signature mismatch - rejecting body_len=${rawBody.length} alt=${JSON.stringify(alt)}`);
+    console.warn('Signature mismatch - rejecting');
     return false;
   }
   return true;
