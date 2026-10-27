@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { keepOnlyPhone } from '../_shared/whatsappNumberRelease.ts';
 
 const GRAPH_API_VERSION = 'v24.0';
 const GRAPH_API_BASE = `https://graph.facebook.com/${GRAPH_API_VERSION}`;
@@ -285,18 +286,18 @@ Deno.serve(async (req) => {
       const qualityRating = mapQuality(targetPhone.quality_rating);
       const messagingLimit = mapMessagingLimit(targetPhone.messaging_limit_tier);
 
-      // Enforce 1 phone per workspace: delete ALL existing phones first
-      const { data: existingPhones } = await supabase
+      // Enforce 1 active phone per workspace: save the new number first,
+      // then release any other number from Meta (history rows are kept).
+      const { data: samePhone } = await supabase
         .from('phone_numbers')
         .select('id')
-        .eq('tenant_id', tenantId);
-      if (existingPhones && existingPhones.length > 0) {
-        const idsToDelete = existingPhones.map((p: any) => p.id);
-        console.log('Removing existing phone(s) to enforce 1-per-workspace:', idsToDelete);
-        await supabase.from('phone_numbers').delete().in('id', idsToDelete);
-      }
+        .eq('tenant_id', tenantId)
+        .eq('phone_number_id', targetPhone.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      const { data: newPhone, error: phoneErr } = await supabase.from('phone_numbers').insert({
+      const phonePayload = {
         tenant_id: tenantId,
         waba_account_id: wabaAccountId,
         phone_number_id: targetPhone.id,
@@ -305,13 +306,21 @@ Deno.serve(async (req) => {
         quality_rating: qualityRating,
         messaging_limit: messagingLimit,
         status: 'connected',
-      }).select().single();
+      };
+      const { data: newPhone, error: phoneErr } = samePhone
+        ? await supabase.from('phone_numbers').update({ ...phonePayload, updated_at: new Date().toISOString() }).eq('id', samePhone.id).select().single()
+        : await supabase.from('phone_numbers').insert(phonePayload).select().single();
 
       if (phoneErr) {
-        console.error('Phone insert error:', phoneErr);
+        console.error('Phone save error:', phoneErr);
       } else {
         connectedPhoneId = newPhone.id;
         console.log('Connected single phone:', connectedPhoneId);
+        try {
+          await keepOnlyPhone(supabase, tenantId, newPhone.id);
+        } catch (e) {
+          console.warn('Failed to release other phones (non-blocking):', e);
+        }
       }
     }
 

@@ -297,18 +297,33 @@ export function usePhoneNumbers() {
     }
 
     try {
-      const { error } = await supabase
-        .from('phone_numbers')
-        .update({ status: 'disconnected' })
-        .eq('id', id)
-        .eq('tenant_id', currentTenant.id);
+      // Server releases the number from Meta (deregister + unsubscribe) and marks it disconnected.
+      const { data, error } = await supabase.functions.invoke('whatsapp-release-number', {
+        body: { tenantId: currentTenant.id, phoneId: id, action: 'disconnect' },
+      });
+      if (error) {
+        let message = 'Failed to disconnect number';
+        try {
+          const ctx = await (error as any).context?.json?.();
+          if (ctx?.error) message = ctx.error;
+        } catch { /* ignore */ }
+        throw new Error(message);
+      }
 
-      if (error) throw error;
-      toast.success('Number disconnected');
+      const result = data?.results?.[0];
+      if (result?.deregistered) {
+        toast.success('Number disconnected and released from Meta');
+      } else if (result?.coexistence) {
+        toast.warning('Disconnected in Aireatro. To fully release it, open WhatsApp Business app → Settings → Account → Business Platform → Disconnect.', { duration: 10000 });
+      } else if (result?.deregisterError) {
+        toast.warning(`Disconnected in Aireatro, but Meta said: ${result.deregisterError}`, { duration: 10000 });
+      } else {
+        toast.success('Number disconnected');
+      }
       await fetchPhoneNumbers();
     } catch (error) {
       console.error('Error disconnecting number:', error);
-      toast.error('Failed to disconnect number');
+      toast.error(error instanceof Error ? error.message : 'Failed to disconnect number');
     }
   };
 

@@ -144,6 +144,14 @@ export default function ConnectNumber() {
           .from('phone_numbers')
           .update({ webhook_health: webhookStatus })
           .eq('id', result.id);
+
+        // One number per workspace: release any previous number from Meta.
+        if (currentTenant?.id) {
+          const { error: releaseError } = await supabase.functions.invoke('whatsapp-release-number', {
+            body: { tenantId: currentTenant.id, phoneId: result.id, action: 'keep_only' },
+          });
+          if (releaseError) console.warn('Could not release previous number:', releaseError);
+        }
       }
 
       // Refresh tenants to ensure workspace metadata is current

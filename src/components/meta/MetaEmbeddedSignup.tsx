@@ -56,6 +56,22 @@ export function MetaEmbeddedSignup({ defaultMode = 'standard', onSuccess, onErro
   } | null>(null);
 
   const sessionDataRef = useRef<{ wabaId: string; phoneNumberId: string } | null>(null);
+  const [currentNumber, setCurrentNumber] = useState<string | null>(null);
+
+  // One number per workspace: show which number a new one would replace.
+  useEffect(() => {
+    let cancelled = false;
+    if (!currentTenant?.id) { setCurrentNumber(null); return; }
+    supabase
+      .from('phone_numbers')
+      .select('display_number')
+      .eq('tenant_id', currentTenant.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => { if (!cancelled) setCurrentNumber((data as any)?.display_number ?? null); });
+    return () => { cancelled = true; };
+  }, [currentTenant?.id, lastResult?.mode]);
 
   useEffect(() => { loadFacebookSdk().catch(() => {}); }, []);
 
@@ -261,6 +277,15 @@ export function MetaEmbeddedSignup({ defaultMode = 'standard', onSuccess, onErro
 
   return (
     <div className="space-y-4">
+      {currentNumber && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-muted-foreground">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+          <p>
+            This workspace holds one number. Adding a <span className="font-medium text-foreground">new</span> number will release{' '}
+            <span className="font-medium text-foreground">{currentNumber}</span> from Meta and stop it in Aireatro. Your chats move to the new number. Reconnecting the same number keeps it.
+          </p>
+        </div>
+      )}
       <Button
         type="button"
         onClick={(e) => launchSignup(defaultMode, e)}
@@ -333,11 +358,6 @@ export function MetaEmbeddedSignup({ defaultMode = 'standard', onSuccess, onErro
               <p className="text-xs text-muted-foreground mt-1">
                 Bought a new number, or it's not on the WhatsApp app? Use this. Meta will send a 6-digit code by text or phone call.
               </p>
-              {existingCoexistence?.displayNumber && (
-                <p className="text-[11px] text-muted-foreground mt-1">
-                  Each workspace has one number — this replaces {existingCoexistence.displayNumber} here.
-                </p>
-              )}
             </div>
           </div>
           <Button
