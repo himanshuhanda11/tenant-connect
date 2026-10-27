@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { keepOnlyPhone } from '../_shared/whatsappNumberRelease.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -314,19 +315,17 @@ Deno.serve(async (req) => {
       if (clientPhoneId) {
         console.log('Connecting single phone:', clientPhoneId);
 
-        // ── Enforce 1 phone per workspace ──
-        // IMPORTANT: Do NOT delete existing phones until the new one is successfully saved.
-        // Otherwise transient Meta API errors can leave the workspace with zero phones.
+        // ── Enforce 1 active phone per workspace ──
+        // IMPORTANT: Only release other numbers AFTER the new one is saved, so
+        // transient Meta API errors can't leave the workspace with zero phones.
+        // Old numbers are released from Meta (deregistered) and kept as
+        // "disconnected" rows so chat/campaign history is preserved.
         const cleanupOtherPhones = async (keepPhoneDbId: string) => {
           try {
-            // Remove any other phones in this workspace
-            await supabase
-              .from('phone_numbers')
-              .delete()
-              .eq('tenant_id', effectiveTenantId)
-              .neq('id', keepPhoneDbId);
+            const released = await keepOnlyPhone(supabase, effectiveTenantId, keepPhoneDbId);
+            if (released.length) console.log('Released previous number(s):', JSON.stringify(released));
           } catch (e) {
-            console.warn('Failed to cleanup other phones (non-blocking):', e);
+            console.warn('Failed to release other phones (non-blocking):', e);
           }
         };
 
