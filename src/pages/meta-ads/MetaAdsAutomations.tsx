@@ -55,12 +55,17 @@ import {
   Megaphone,
   MousePointerClick,
   Radio,
+  MessageCircle,
+  Check,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
 import { useTeamMembers, useTeams } from '@/hooks/useTeam';
+import { useWhatsAppAdSources, adSourceLabel, type WhatsAppAdSource } from '@/hooks/useWhatsAppAdSources';
 
 interface DbAutomation {
   id: string;
@@ -106,6 +111,7 @@ export default function MetaAdsAutomations() {
   const { templates } = useTemplates();
   const { tags } = useTags();
   const { workflows } = useAutomationWorkflows();
+  const { adSources, rename: renameAdSource } = useWhatsAppAdSources();
 
   const [automations, setAutomations] = useState<DbAutomation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -116,12 +122,15 @@ export default function MetaAdsAutomations() {
   const [campaignSearch, setCampaignSearch] = useState('');
   const [campaignStatus, setCampaignStatus] = useState<'all' | 'active' | 'off'>('all');
   const [syncing, setSyncing] = useState(false);
+  const [renamingAdId, setRenamingAdId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
 
   // Form state
   const [formName, setFormName] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formTrigger, setFormTrigger] = useState('new_lead');
   const [formCampaignIds, setFormCampaignIds] = useState<string[]>([]);
+  const [formAdIds, setFormAdIds] = useState<string[]>([]);
   const [formAssignMode, setFormAssignMode] = useState<'none' | 'agent' | 'team' | 'roundrobin'>('none');
   const [formAssignAgent, setFormAssignAgent] = useState('');
   const [formAssignTeam, setFormAssignTeam] = useState('');
@@ -253,11 +262,25 @@ export default function MetaAdsAutomations() {
     })
     .sort((a, b) => Number(isActiveAd(b.status)) - Number(isActiveAd(a.status)) || a.name.localeCompare(b.name));
 
+  const getAutomationAdIds = (auto: DbAutomation): string[] => {
+    const raw = (auto.trigger_conditions as { meta_ad_ids?: unknown } | null)?.meta_ad_ids;
+    return Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string' && v.length > 0) : [];
+  };
+
+  const adSourceById = new Map(adSources.map(ad => [ad.ad_id, ad]));
+  const automationsByAdId = new Map<string, DbAutomation[]>();
+  automations.forEach(auto => {
+    getAutomationAdIds(auto).forEach(adId => {
+      automationsByAdId.set(adId, [...(automationsByAdId.get(adId) || []), auto]);
+    });
+  });
+
   const resetForm = () => {
     setFormName('');
     setFormDescription('');
     setFormTrigger('new_lead');
     setFormCampaignIds([]);
+    setFormAdIds([]);
     setFormAssignMode('none');
     setFormAssignAgent('');
     setFormAssignTeam('');
@@ -275,6 +298,7 @@ export default function MetaAdsAutomations() {
     setFormDescription(auto.description || '');
     setFormTrigger(auto.trigger_type);
     setFormCampaignIds(auto.trigger_campaign_ids || []);
+    setFormAdIds(getAutomationAdIds(auto));
     const actions = (auto.actions || []) as Record<string, unknown>[];
     
     // Restore action states
@@ -312,6 +336,27 @@ export default function MetaAdsAutomations() {
     resetForm();
     setEditingAutomation(null);
     setShowDialog(true);
+  };
+
+  const openCreateForAd = (ad: WhatsAppAdSource) => {
+    resetForm();
+    setEditingAutomation(null);
+    setFormName(`${adSourceLabel(ad)} → agents`);
+    setFormTrigger('ad_click');
+    setFormAdIds([ad.ad_id]);
+    setFormSendTemplate(false);
+    setFormAssignMode(members.length >= 2 ? 'roundrobin' : 'agent');
+    setShowDialog(true);
+  };
+
+  const saveRename = async (ad: WhatsAppAdSource) => {
+    try {
+      await renameAdSource(ad.id, renameValue);
+      toast.success('Ad name saved');
+      setRenamingAdId(null);
+    } catch {
+      toast.error('Only workspace admins can rename ads');
+    }
   };
 
   const openEdit = (auto: DbAutomation) => {
@@ -389,7 +434,10 @@ export default function MetaAdsAutomations() {
         trigger_type: formTrigger,
         trigger_ad_account_id: adAccountId,
         trigger_campaign_ids: formCampaignIds.length > 0 ? formCampaignIds : null,
-        trigger_conditions: {},
+        trigger_conditions: {
+          ...((editingAutomation?.trigger_conditions as Record<string, unknown>) || {}),
+          meta_ad_ids: formAdIds,
+        } as unknown as any,
         actions: actions as unknown as any,
       };
 
@@ -455,6 +503,10 @@ export default function MetaAdsAutomations() {
     );
   };
 
+  const toggleAdSource = (adId: string) => {
+    setFormAdIds(prev => (prev.includes(adId) ? prev.filter(a => a !== adId) : [...prev, adId]));
+  };
+
   const toggleRoundRobinAgent = (agentId: string) => {
     setFormRoundRobinAgents(prev =>
       prev.includes(agentId) ? prev.filter(a => a !== agentId) : [...prev, agentId]
@@ -506,8 +558,12 @@ export default function MetaAdsAutomations() {
 
         <div className="grid grid-cols-2 gap-2 lg:grid-cols-4 sm:gap-3">
           {[
-            { label: 'Active ads', value: activeAds.length, icon: Radio, tone: 'text-success bg-success/10' },
-            { label: 'Paused / off', value: inactiveAds.length, icon: Pause, tone: 'text-warning bg-warning/10' },
+            campaigns.length > 0
+              ? { label: 'Active ads', value: activeAds.length, icon: Radio, tone: 'text-success bg-success/10' }
+              : { label: 'Ads sending chats', value: adSources.length, icon: MessageCircle, tone: 'text-success bg-success/10' },
+            campaigns.length > 0
+              ? { label: 'Paused / off', value: inactiveAds.length, icon: Pause, tone: 'text-warning bg-warning/10' }
+              : { label: 'Ads without routing', value: adSources.filter(ad => !automationsByAdId.get(ad.ad_id)?.some(a => a.is_active)).length, icon: Pause, tone: 'text-warning bg-warning/10' },
             { label: 'Active automations', value: activeAutomations.length, icon: Zap, tone: 'text-primary bg-primary/10' },
             { label: 'Last Meta update', value: latestSync ? new Date(latestSync).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Not synced', icon: Clock, tone: 'text-info bg-info/10' },
           ].map(item => (
@@ -523,6 +579,82 @@ export default function MetaAdsAutomations() {
           ))}
         </div>
 
+        {/* Ads that sent people to WhatsApp — available without Meta ad-account access */}
+        <Card className="border shadow-card">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="flex items-center gap-2 text-base"><MessageCircle className="h-4 w-4 text-primary" />Ads sending WhatsApp chats</CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">Every ad that has brought a chat to your WhatsApp. Pick agents per ad with “Route leads”.</p>
+          </CardHeader>
+          <CardContent className="p-4 pt-2">
+            {adSources.length === 0 ? (
+              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+                No ad chats yet. An ad appears here as soon as someone messages you from it.
+              </div>
+            ) : (
+              <div className="grid gap-2 md:grid-cols-2">
+                {adSources.map(ad => {
+                  const routing = (automationsByAdId.get(ad.ad_id) || []).filter(a => a.is_active);
+                  const isRenaming = renamingAdId === ad.id;
+                  return (
+                    <div key={ad.id} className="flex min-w-0 flex-col gap-2 rounded-lg border bg-card p-3">
+                      <div className="flex min-w-0 items-start gap-2">
+                        <div className="min-w-0 flex-1">
+                          {isRenaming ? (
+                            <div className="flex items-center gap-1">
+                              <Input
+                                autoFocus
+                                value={renameValue}
+                                onChange={e => setRenameValue(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter') void saveRename(ad); if (e.key === 'Escape') setRenamingAdId(null); }}
+                                placeholder="e.g. Europe jobs – Tagalog"
+                                className="h-8 text-sm"
+                                maxLength={80}
+                              />
+                              <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" aria-label="Save name" onClick={() => void saveRename(ad)}><Check className="h-4 w-4" /></Button>
+                              <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" aria-label="Cancel" onClick={() => setRenamingAdId(null)}><X className="h-4 w-4" /></Button>
+                            </div>
+                          ) : (
+                            <div className="flex min-w-0 items-center gap-1">
+                              <p className="truncate text-sm font-semibold" title={adSourceLabel(ad)}>{adSourceLabel(ad)}</p>
+                              <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0" aria-label="Rename ad" onClick={() => { setRenamingAdId(ad.id); setRenameValue(ad.display_name || adSourceLabel(ad)); }}>
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                          <p className="truncate text-[11px] text-muted-foreground">Ad ID {ad.ad_id}{ad.display_name && ad.headline ? ` · ${ad.headline}` : ''}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                        <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" />{ad.leads_count.toLocaleString()} leads</span>
+                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" />Last chat {formatDistanceToNow(new Date(ad.last_seen_at), { addSuffix: true })}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        {routing.length > 0 ? (
+                          <Badge variant="secondary" className="max-w-[65%] truncate text-[10px]" title={routing.map(r => r.name).join(', ')}>
+                            <Users className="mr-1 h-3 w-3" />{routing[0].name}{routing.length > 1 ? ` +${routing.length - 1}` : ''}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] text-muted-foreground">Not routed</Badge>
+                        )}
+                        <Button
+                          size="sm"
+                          variant={routing.length > 0 ? 'outline' : 'default'}
+                          className="h-7 gap-1 px-2.5 text-xs"
+                          onClick={() => (routing.length > 0 ? openEdit(routing[0]) : openCreateForAd(ad))}
+                        >
+                          <UserPlus className="h-3.5 w-3.5" />
+                          {routing.length > 0 ? 'Edit routing' : 'Route leads'}
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {campaigns.length > 0 && (
         <Card className="border shadow-card">
           <CardHeader className="p-4 pb-2">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -570,6 +702,7 @@ export default function MetaAdsAutomations() {
             )}
           </CardContent>
         </Card>
+        )}
 
         {/* Automations List */}
         <Card className="border-0 shadow-lg">
@@ -596,12 +729,18 @@ export default function MetaAdsAutomations() {
                 const triggerInfo = TRIGGER_LABELS[automation.trigger_type] || { label: automation.trigger_type, icon: Zap };
                 const TriggerIcon = triggerInfo.icon;
                 const actions = (automation.actions || []) as Record<string, unknown>[];
-                  const targetedCampaigns = (automation.trigger_campaign_ids || [])
-                   .map(cid => {
-                     const campaign = campaigns.find(c => c.id === cid);
-                     return campaign ? getCampaignDisplayName(campaign) : null;
-                   })
-                  .filter(Boolean);
+                const targetedCampaigns = [
+                  ...getAutomationAdIds(automation).map(adId => {
+                    const ad = adSourceById.get(adId);
+                    return ad ? adSourceLabel(ad) : `Ad …${adId.slice(-6)}`;
+                  }),
+                  ...(automation.trigger_campaign_ids || [])
+                    .map(cid => {
+                      const campaign = campaigns.find(c => c.id === cid);
+                      return campaign ? getCampaignDisplayName(campaign) : null;
+                    })
+                    .filter((name): name is string => !!name),
+                ];
 
                 return (
                   <div
@@ -674,7 +813,7 @@ export default function MetaAdsAutomations() {
         <DialogContent className="sm:max-w-lg mx-4">
           <DialogHeader>
             <DialogTitle className="text-base">{editingAutomation ? 'Edit Automation' : 'Create Automation'}</DialogTitle>
-            <DialogDescription className="text-xs">Map campaigns to agents and actions</DialogDescription>
+            <DialogDescription className="text-xs">Pick ads, then choose who gets their leads</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
@@ -701,12 +840,61 @@ export default function MetaAdsAutomations() {
               </Select>
             </div>
 
-            {/* Campaign Selection */}
+            {/* WhatsApp ad selection — works without Meta ad-account access */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium flex items-center gap-1.5">
+                  <MessageCircle className="h-3.5 w-3.5 text-primary" />
+                  From these ads
+                </Label>
+                {formAdIds.length > 0 && (
+                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setFormAdIds([])}>
+                    Clear all
+                  </Button>
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground">Ads that have sent people to your WhatsApp. Leave empty for all.</p>
+              {adSources.length > 0 ? (
+                <div className="grid grid-cols-1 gap-1.5 max-h-44 overflow-y-auto border rounded-lg p-2 bg-muted/20">
+                  {adSources.map(ad => {
+                    const isSelected = formAdIds.includes(ad.ad_id);
+                    return (
+                      <button
+                        key={ad.id}
+                        type="button"
+                        onClick={() => toggleAdSource(ad.ad_id)}
+                        className={`flex items-center gap-2.5 p-2 rounded-lg text-left transition-all text-xs ${
+                          isSelected ? 'bg-primary/10 border border-primary/30 ring-1 ring-primary/20' : 'hover:bg-muted/50 border border-transparent'
+                        }`}
+                      >
+                        <div className={`h-4 w-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isSelected ? 'bg-primary border-primary' : 'border-muted-foreground/30'}`}>
+                          {isSelected && <CheckCircle2 className="h-3 w-3 text-primary-foreground" />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium">{adSourceLabel(ad)}</p>
+                          <p className="truncate text-[10px] text-muted-foreground">Ad ID {ad.ad_id} · {ad.leads_count.toLocaleString()} leads</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground italic p-3 border rounded-lg bg-muted/20">
+                  No ad chats yet. Ads appear here after the first person messages you from them.
+                </p>
+              )}
+              {formAdIds.some(id => !adSourceById.has(id)) && (
+                <p className="text-[11px] text-muted-foreground">+{formAdIds.filter(id => !adSourceById.has(id)).length} older ad(s) also selected</p>
+              )}
+            </div>
+
+            {/* Campaign Selection (needs Meta ad-account access) */}
+            {campaigns.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="text-sm font-medium flex items-center gap-1.5">
                   <Target className="h-3.5 w-3.5 text-primary" />
-                  From these campaigns
+                  Or from these campaigns
                 </Label>
                 {formCampaignIds.length > 0 && (
                   <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setFormCampaignIds([])}>
@@ -715,7 +903,6 @@ export default function MetaAdsAutomations() {
                 )}
               </div>
               <p className="text-[11px] text-muted-foreground">Select specific campaigns or leave empty for all</p>
-              {campaigns.length > 0 ? (
                 <div className="grid grid-cols-1 gap-1.5 max-h-40 overflow-y-auto border rounded-lg p-2 bg-muted/20">
                   {[...campaigns].sort((a, b) => Number(isActiveCampaign(b)) - Number(isActiveCampaign(a))).map(campaign => {
                     const isSelected = formCampaignIds.includes(campaign.id);
@@ -744,12 +931,8 @@ export default function MetaAdsAutomations() {
                     );
                   })}
                 </div>
-              ) : (
-                <p className="text-xs text-muted-foreground italic p-3 border rounded-lg bg-muted/20">
-                  No campaigns synced yet. Sync your Meta Ads data first.
-                </p>
-              )}
             </div>
+            )}
 
             <div className="flex items-center gap-2 py-1">
               <ArrowDown className="h-4 w-4 text-primary" />
@@ -902,6 +1085,9 @@ export default function MetaAdsAutomations() {
                   <p className="text-[11px] text-muted-foreground">
                     Select 2+ agents — leads rotate equally
                   </p>
+                  {members.length < 2 && (
+                    <p className="text-[11px] text-warning">This workspace has only {members.length} member. Add agents in Team first.</p>
+                  )}
                   <div className="grid grid-cols-1 gap-1 max-h-40 overflow-y-auto border rounded-lg p-2 bg-muted/20">
                     {members.map(m => {
                       const agentId = m.user_id || m.id;

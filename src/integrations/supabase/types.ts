@@ -8655,6 +8655,78 @@ export type Database = {
           },
         ]
       }
+      meta_ctwa_ads: {
+        Row: {
+          ad_id: string
+          body: string | null
+          clicks_count: number
+          created_at: string
+          display_name: string | null
+          first_seen_at: string
+          headline: string | null
+          id: string
+          image_url: string | null
+          last_lead_at: string | null
+          last_seen_at: string
+          leads_count: number
+          media_type: string | null
+          source_url: string | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          ad_id: string
+          body?: string | null
+          clicks_count?: number
+          created_at?: string
+          display_name?: string | null
+          first_seen_at?: string
+          headline?: string | null
+          id?: string
+          image_url?: string | null
+          last_lead_at?: string | null
+          last_seen_at?: string
+          leads_count?: number
+          media_type?: string | null
+          source_url?: string | null
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          ad_id?: string
+          body?: string | null
+          clicks_count?: number
+          created_at?: string
+          display_name?: string | null
+          first_seen_at?: string
+          headline?: string | null
+          id?: string
+          image_url?: string | null
+          last_lead_at?: string | null
+          last_seen_at?: string
+          leads_count?: number
+          media_type?: string | null
+          source_url?: string | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_ctwa_ads_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "platform_workspace_directory"
+            referencedColumns: ["workspace_id"]
+          },
+          {
+            foreignKeyName: "meta_ctwa_ads_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meta_lead_forms: {
         Row: {
           created_at: string
@@ -19959,6 +20031,19 @@ export type Database = {
       }
       record_agent_login: { Args: { p_tenant_id: string }; Returns: string }
       record_agent_logout: { Args: { p_tenant_id: string }; Returns: undefined }
+      record_ctwa_ad_click: {
+        Args: {
+          _ad_id: string
+          _body: string
+          _headline: string
+          _image_url: string
+          _is_new_lead: boolean
+          _media_type: string
+          _source_url: string
+          _tenant_id: string
+        }
+        Returns: undefined
+      }
       resolve_pricing_currency: { Args: { _region: string }; Returns: string }
       resolve_pricing_region: { Args: { _country: string }; Returns: string }
       schedule_automation_job: {
