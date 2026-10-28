@@ -48,6 +48,7 @@ export function AgentGreetingsCard() {
     updateTemplate,
     deleteTemplate,
     seedDefaults,
+    workspaceTemplates,
   } = useGreetingTemplates();
 
   const [enabled, setEnabled] = useState(true);
@@ -136,6 +137,7 @@ export function AgentGreetingsCard() {
 
   const activeCount = templates.filter((t) => t.is_active).length;
   const disabledCount = templates.length - activeCount;
+  const sharedFromWorkspace = workspaceTemplates.filter((t) => t.agent_user_id !== user?.id).length;
 
   const filtered = useMemo(() => {
     return templates.filter((t) => {
@@ -188,6 +190,13 @@ export function AgentGreetingsCard() {
           <div className="rounded-lg border border-dashed border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
             Turn on the toggle above to use your personal greeting library on assigned chats.
             Templates below stay saved either way.
+          </div>
+        )}
+
+        {!isLoading && activeCount === 0 && sharedFromWorkspace > 0 && (
+          <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-xs text-foreground">
+            You're using <strong>{sharedFromWorkspace} workspace greeting{sharedFromWorkspace === 1 ? '' : 's'}</strong> set
+            by your admin. Add your own below to replace them for your chats.
           </div>
         )}
 
