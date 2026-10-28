@@ -36,6 +36,13 @@
       "when": 1793139754916,
       "tag": "0004_deprecate_webhook_signature_rejections",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793194137024,
+      "tag": "0005_workspace_greeting_templates",
+      "breakpoints": true
     }
   ]
 }
