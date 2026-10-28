@@ -163,6 +163,7 @@ export function useGreetingTemplates() {
     updateTemplate,
     deleteTemplate,
     seedDefaults,
+    workspaceTemplates,
     getRandomMessage: getGreetingMessage,
     DEFAULT_TEMPLATES,
     MAX_AGENT_GREETINGS,
