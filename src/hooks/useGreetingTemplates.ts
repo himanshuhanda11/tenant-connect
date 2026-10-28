@@ -53,6 +53,22 @@ export function useGreetingTemplates() {
     enabled: !!tenantId && !!userId,
   });
 
+  // Workspace greetings written by the owner/admins. Used when the signed-in
+  // person has no active greetings of their own (e.g. agents).
+  const { data: workspaceTemplates = [] } = useQuery({
+    queryKey: ['greeting-templates-workspace', tenantId],
+    queryFn: async () => {
+      if (!tenantId) return [] as GreetingTemplate[];
+      const { data, error } = await supabase.rpc('get_workspace_greeting_templates', {
+        _tenant_id: tenantId,
+      });
+      if (error) throw error;
+      return (data || []) as GreetingTemplate[];
+    },
+    enabled: !!tenantId,
+    staleTime: 60_000,
+  });
+
   const addTemplate = useMutation({
     mutationFn: async (messageText: string) => {
       if (!tenantId || !userId) throw new Error('Not signed in');
@@ -124,12 +140,14 @@ export function useGreetingTemplates() {
     onError: (err: any) => toast.error('Failed to seed templates: ' + (err?.message || 'Unknown error')),
   });
 
-  // Get a (random) active greeting template, with variables replaced. Falls back to first DEFAULT.
+  // Get a (random) active greeting: own greetings first, then the workspace
+  // owner/admin greetings, then the built-in defaults.
   const getGreetingMessage = (contactName: string, businessName: string, agentName?: string): string => {
     const agent = agentName || 'our team';
     const replace = (msg: string) =>
       msg.replace(/\{\{name\}\}/g, contactName).replace(/\{\{biz\}\}/g, businessName).replace(/\{\{agent_name\}\}/g, agent);
-    const active = templates.filter(t => t.is_active);
+    const own = templates.filter(t => t.is_active);
+    const active = own.length > 0 ? own : workspaceTemplates.filter(t => t.is_active);
     if (active.length === 0) {
       const pick = DEFAULT_TEMPLATES[Math.floor(Math.random() * DEFAULT_TEMPLATES.length)];
       return replace(pick);
