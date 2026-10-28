@@ -19771,6 +19771,25 @@ export type Database = {
         Args: { p_tenant_id: string; p_user_id: string }
         Returns: string
       }
+      get_workspace_greeting_templates: {
+        Args: { _tenant_id: string }
+        Returns: {
+          agent_user_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          message_text: string
+          sort_order: number
+          tenant_id: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "whatsapp_greeting_templates"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       has_permission: {
         Args: { p_permission_key: string; p_user_id: string }
         Returns: boolean
