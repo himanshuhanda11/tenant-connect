@@ -254,7 +254,25 @@ export function WhatsAppNumberSettings() {
           <Separator />
 
           {/* Actions */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {canUsePhoto && (
+              <>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  id="wa-number-photo-upload"
+                  onChange={handlePhotoUpload}
+                  disabled={photoUploading}
+                />
+                <Button variant="outline" size="sm" className="rounded-xl" disabled={photoUploading} asChild>
+                  <label htmlFor="wa-number-photo-upload" className="cursor-pointer">
+                    {photoUploading ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Upload className="h-3.5 w-3.5 mr-1.5" />}
+                    {photoUploading ? 'Uploading...' : photoUrl ? 'Change WhatsApp photo' : 'Upload WhatsApp photo'}
+                  </label>
+                </Button>
+              </>
+            )}
             <Button
               variant="outline"
               size="sm"
