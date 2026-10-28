@@ -19,6 +19,7 @@ import { usePhoneNumbers } from '@/hooks/usePhoneNumbers';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ContactAdminDialog } from '@/components/settings/ContactAdminDialog';
+import { uploadWhatsAppProfilePhoto } from '@/lib/whatsappProfilePhoto';
 
 
 const workspaceSchema = z.object({
@@ -200,8 +201,43 @@ export function WorkspaceSettings() {
     }
   };
 
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Push a new photo to the live WhatsApp Business profile of the connected number.
+  const handleWaPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!primaryPhone?.phone_number_id || !primaryPhone?.waba_uuid) {
+      toast.error('Connect a WhatsApp number first');
+      return;
+    }
+    setLogoUploading(true);
+    try {
+      await uploadWhatsAppProfilePhoto({
+        file,
+        phoneNumberId: primaryPhone.phone_number_id,
+        wabaUuid: primaryPhone.waba_uuid,
+      });
+      // Show the new photo straight away; Meta may take a moment to return the new URL.
+      const preview = URL.createObjectURL(file);
+      setLogoUrl(preview);
+      setWaProfile((prev: any) => ({ ...(prev || {}), profile_picture_url: preview }));
+      toast.success('WhatsApp profile photo updated. Customers may see it after a few minutes.');
+      setTimeout(() => { fetchWaProfile(); }, 4000);
+    } catch (err: any) {
+      console.error('WhatsApp photo upload error:', err);
+      toast.error(err.message || 'Failed to update WhatsApp photo');
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // With a WhatsApp number connected, the workspace logo IS the WhatsApp profile photo.
+    if (primaryPhone?.phone_number_id && primaryPhone?.waba_uuid) {
+      return handleWaPhotoUpload(e);
+    }
+    const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file || !currentTenant) return;
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Logo must be under 5MB');
@@ -220,6 +256,7 @@ export function WorkspaceSettings() {
         .createSignedUrl(filePath, 60 * 60 * 24 * 365);
       if (urlData?.signedUrl) {
         setLogoUrl(urlData.signedUrl);
+        await supabase.from('tenants').update({ logo_url: urlData.signedUrl } as any).eq('id', currentTenant.id);
         toast.success('Logo uploaded');
       }
     } catch (err: any) {
@@ -275,7 +312,9 @@ export function WorkspaceSettings() {
                         </label>
                       </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">256x256px, PNG or JPG</p>
+                    <p className="text-xs text-muted-foreground">
+                      {primaryPhone ? 'Also updates your WhatsApp profile photo. ' : ''}Square image, at least 640 x 640px, PNG or JPG
+                    </p>
                   </div>
                 </div>
 
@@ -421,12 +460,29 @@ export function WorkspaceSettings() {
                             {primaryPhone.phone_e164?.slice(-2) || 'WA'}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="space-y-1">
-                          <p className="font-medium">{primaryPhone.verified_name || primaryPhone.phone_e164}</p>
-                          <p className="text-sm text-muted-foreground font-mono">{primaryPhone.phone_e164}</p>
-                          {waProfile?.profile_picture_url && (
-                            <Badge variant="outline" className="text-xs">Profile photo set</Badge>
-                          )}
+                        <div className="space-y-2">
+                          <div className="space-y-1">
+                            <p className="font-medium">{primaryPhone.verified_name || primaryPhone.phone_e164}</p>
+                            <p className="text-sm text-muted-foreground font-mono">{primaryPhone.phone_e164}</p>
+                            {waProfile?.profile_picture_url && (
+                              <Badge variant="outline" className="text-xs">Profile photo set</Badge>
+                            )}
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            onChange={handleWaPhotoUpload}
+                            className="hidden"
+                            id="wa-photo-upload"
+                            disabled={!canEdit || logoUploading}
+                          />
+                          <Button type="button" variant="outline" size="sm" disabled={!canEdit || logoUploading} asChild>
+                            <label htmlFor="wa-photo-upload" className="cursor-pointer">
+                              {logoUploading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
+                              {logoUploading ? 'Uploading...' : waProfile?.profile_picture_url ? 'Change photo' : 'Upload photo'}
+                            </label>
+                          </Button>
+                          <p className="text-xs text-muted-foreground">Square logo, at least 640 x 640px. PNG or JPG.</p>
                         </div>
                       </div>
 
