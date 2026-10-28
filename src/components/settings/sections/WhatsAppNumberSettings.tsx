@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { uploadWhatsAppProfilePhoto } from '@/lib/whatsappProfilePhoto';
 import {
-  Phone, CheckCircle2, Clock, AlertTriangle, RefreshCw, Loader2, Wifi
+  Phone, CheckCircle2, Clock, AlertTriangle, RefreshCw, Loader2, Wifi, Upload
 } from 'lucide-react';
 
 interface PhoneRecord {
@@ -67,6 +69,38 @@ export function WhatsAppNumberSettings() {
   };
 
   useEffect(() => { fetchPhone(); }, [currentTenant?.id]);
+
+  // WhatsApp Business profile photo (logo customers see in WhatsApp)
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const canUsePhoto = !!(phone?.phone_number_id && phone?.waba_account_id && phone.status !== 'disconnected');
+
+  const fetchPhoto = useCallback(async () => {
+    if (!phone?.phone_number_id || !phone?.waba_account_id) return;
+    const { data } = await supabase.functions.invoke('whatsapp-profile', {
+      body: { action: 'get', phone_number_id: phone.phone_number_id, waba_account_id: phone.waba_account_id },
+    });
+    setPhotoUrl(data?.profile?.profile_picture_url || null);
+  }, [phone?.phone_number_id, phone?.waba_account_id]);
+
+  useEffect(() => { if (canUsePhoto) fetchPhoto(); }, [canUsePhoto, fetchPhoto]);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !phone?.phone_number_id || !phone?.waba_account_id) return;
+    setPhotoUploading(true);
+    try {
+      await uploadWhatsAppProfilePhoto({ file, phoneNumberId: phone.phone_number_id, wabaUuid: phone.waba_account_id });
+      setPhotoUrl(URL.createObjectURL(file));
+      toast({ title: 'WhatsApp photo updated', description: 'Customers may see the new photo after a few minutes.' });
+      setTimeout(() => { fetchPhoto(); }, 4000);
+    } catch (err: any) {
+      toast({ title: 'Could not update photo', description: err.message, variant: 'destructive' });
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
 
   const handleRefreshStatus = async () => {
     if (!currentTenant?.id || !phone) return;
@@ -133,12 +167,22 @@ export function WhatsAppNumberSettings() {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Number + status */}
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <div className="font-mono text-lg font-semibold">{phone.display_number}</div>
-              {phone.verified_name && (
-                <div className="text-sm text-muted-foreground">{phone.verified_name}</div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              {canUsePhoto && (
+                <Avatar className="h-14 w-14 border border-border shrink-0">
+                  <AvatarImage src={photoUrl || undefined} alt="WhatsApp profile photo" />
+                  <AvatarFallback className="bg-muted">
+                    <Phone className="h-5 w-5 text-muted-foreground" />
+                  </AvatarFallback>
+                </Avatar>
               )}
+              <div className="space-y-1 min-w-0">
+                <div className="font-mono text-lg font-semibold">{phone.display_number}</div>
+                {phone.verified_name && (
+                  <div className="text-sm text-muted-foreground">{phone.verified_name}</div>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-2">
               {phone.status === 'connected' ? (
@@ -210,7 +254,25 @@ export function WhatsAppNumberSettings() {
           <Separator />
 
           {/* Actions */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {canUsePhoto && (
+              <>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  id="wa-number-photo-upload"
+                  onChange={handlePhotoUpload}
+                  disabled={photoUploading}
+                />
+                <Button variant="outline" size="sm" className="rounded-xl" disabled={photoUploading} asChild>
+                  <label htmlFor="wa-number-photo-upload" className="cursor-pointer">
+                    {photoUploading ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Upload className="h-3.5 w-3.5 mr-1.5" />}
+                    {photoUploading ? 'Uploading...' : photoUrl ? 'Change WhatsApp photo' : 'Upload WhatsApp photo'}
+                  </label>
+                </Button>
+              </>
+            )}
             <Button
               variant="outline"
               size="sm"
