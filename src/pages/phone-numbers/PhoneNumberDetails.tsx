@@ -292,29 +292,14 @@ export default function PhoneNumberDetails() {
     const file = e.target.files?.[0];
     if (!file || !number?.waba_uuid || !number?.phone_number_id) return;
 
-    // Validate file
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be less than 5MB');
-      return;
-    }
-
     setUploadingPicture(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('phone_number_id', number.phone_number_id);
-      formData.append('waba_account_id', number.waba_uuid);
-
-      const { data, error } = await supabase.functions.invoke('whatsapp-profile', {
-        body: formData,
+      await uploadWhatsAppProfilePhoto({
+        file,
+        phoneNumberId: number.phone_number_id,
+        wabaUuid: number.waba_uuid,
       });
 
-      if (error) throw error;
-      if (!data?.success) throw new Error(data?.error || data?.details || 'Upload failed');
 
       toast.success('Profile picture updated successfully! It may take a few minutes to appear on WhatsApp.');
       // Refresh profile to get new picture URL
