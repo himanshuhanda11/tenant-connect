@@ -57,13 +57,19 @@ export function useWhatsAppAdSources() {
 
   useEffect(() => {
     if (!tenantId) return;
+    // Busy ads update their counters on every chat; batch those into one reload.
+    let timer: number | undefined;
     const channel = supabase
-      .channel(`whatsapp-ad-sources-${tenantId}`)
+      .channel(`whatsapp-ad-sources-${tenantId}-${Math.random().toString(36).slice(2, 8)}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'meta_ctwa_ads', filter: `tenant_id=eq.${tenantId}` }, () => {
-        void queryClient.invalidateQueries({ queryKey: ['whatsapp-ad-sources', tenantId] });
+        window.clearTimeout(timer);
+        timer = window.setTimeout(() => void queryClient.invalidateQueries({ queryKey: ['whatsapp-ad-sources', tenantId] }), 1000);
       })
       .subscribe();
-    return () => { void supabase.removeChannel(channel); };
+    return () => {
+      window.clearTimeout(timer);
+      void supabase.removeChannel(channel);
+    };
   }, [tenantId, queryClient]);
 
   const rename = async (id: string, name: string) => {
@@ -75,5 +81,12 @@ export function useWhatsAppAdSources() {
     await queryClient.invalidateQueries({ queryKey: ['whatsapp-ad-sources', tenantId] });
   };
 
-  return { adSources: query.data || [], isLoading: query.isLoading, rename };
+  return {
+    adSources: query.data || [],
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    dataUpdatedAt: query.dataUpdatedAt,
+    refetch: query.refetch,
+    rename,
+  };
 }

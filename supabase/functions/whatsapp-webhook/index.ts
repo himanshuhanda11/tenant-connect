@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { automationMatchesAd, getTargetAdIds } from '../_shared/metaAdTargeting.ts';
+import { automationMatchesAd, getTargetAdIds, sortAutomationsByPriority } from '../_shared/metaAdTargeting.ts';
 import { verifyMetaSignature } from '../_shared/metaSignature.ts';
 
 const corsHeaders = {
@@ -3167,7 +3167,7 @@ async function handleMetaAdAutomations(
   }
 
   // Filter automations based on trigger type and campaign targeting
-  for (const automation of automations) {
+  for (const automation of sortAutomationsByPriority(automations)) {
     // Check trigger type
     const triggerMatch = checkMetaAdTrigger(automation, ev, referral);
     if (!triggerMatch) continue;

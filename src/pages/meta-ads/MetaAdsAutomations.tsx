@@ -1,1157 +1,460 @@
-import { useState, useEffect, useCallback } from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useTemplates } from '@/hooks/useTemplates';
-import { useTags } from '@/hooks/useTags';
-import { useAutomationWorkflows } from '@/hooks/useAutomationWorkflows';
-import { Switch } from '@/components/ui/switch';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Separator } from '@/components/ui/separator';
-import {
-  Zap,
-  Plus,
-  Play,
-  Pause,
-  Pencil,
-  Trash2,
-  MessageSquare,
-  Tag,
-  Users,
-  UserPlus,
-  GitBranch,
-  Clock,
-  TrendingUp,
-  CheckCircle2,
-  Target,
-  Loader2,
-  ArrowDown,
-  ArrowRight,
-  RefreshCw,
-  Search,
-  Megaphone,
-  MousePointerClick,
-  Radio,
-  MessageCircle,
-  Check,
-  X,
-} from 'lucide-react';
-import { toast } from 'sonner';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
+import { AlertTriangle, CheckCircle2, Facebook, Loader2, MessageCircle, Plus, RefreshCw, Route, Search, TrendingUp, Zap } from 'lucide-react';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
 import { useTeamMembers, useTeams } from '@/hooks/useTeam';
 import { useWhatsAppAdSources, adSourceLabel, type WhatsAppAdSource } from '@/hooks/useWhatsAppAdSources';
+import { useMetaAdAutomations, type MetaAdAutomation } from '@/hooks/useMetaAdAutomations';
+import { describeAssignment } from '@/lib/metaAdRouting';
+import { findWinningRoutingRule, getTargetAdIds, routingSpecificity, sortAutomationsByPriority } from '@/lib/metaAdTargeting';
+import { AdRoutingRow } from '@/components/meta-ads/routing/AdRoutingRow';
+import { RoutingRuleCard } from '@/components/meta-ads/routing/RoutingRuleCard';
+import { RoutingRuleDialog } from '@/components/meta-ads/routing/RoutingRuleDialog';
+import { cn } from '@/lib/utils';
 
-interface DbAutomation {
-  id: string;
-  workspace_id: string;
-  name: string;
-  description: string | null;
-  trigger_type: string;
-  trigger_ad_account_id: string | null;
-  trigger_campaign_ids: string[] | null;
-  trigger_conditions: Record<string, unknown>;
-  actions: Record<string, unknown>[];
-  executions_count: number;
-  last_executed_at: string | null;
-  is_active: boolean;
-  created_by: string | null;
-  created_at: string;
-  updated_at: string;
+type TabKey = 'ads' | 'rules' | 'campaigns';
+type AdFilter = 'all' | 'routed' | 'unrouted';
+
+const DAY = 24 * 60 * 60 * 1000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string) {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error(message)), ms)),
+  ]);
 }
 
-const TRIGGER_LABELS: Record<string, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
-  new_lead: { label: 'New Lead from Ad', icon: TrendingUp },
-  first_message: { label: 'First Message After Ad', icon: MessageSquare },
-  ad_click: { label: 'Ad Click', icon: Zap },
-};
-
-const ACTION_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  send_template: MessageSquare,
-  add_tag: Tag,
-  assign_agent: UserPlus,
-  assign_team: Users,
-  assign_agents_roundrobin: Users,
-  start_workflow: GitBranch,
-  wait: Clock,
-  start_sla: Clock,
-  notify: Zap,
-};
+interface CampaignAdRow { id: string; name: string; status: string; campaignId: string; campaignName: string; leads: number }
 
 export default function MetaAdsAutomations() {
   const { currentTenant } = useTenant();
-  const { campaigns, connectedAccounts, refetch: refetchMetaAds } = useMetaAdAccounts();
+  const { campaigns, connectedAccounts, refetch: refetchMeta } = useMetaAdAccounts();
   const { members } = useTeamMembers();
   const { teams } = useTeams();
-  const { templates } = useTemplates();
-  const { tags } = useTags();
-  const { workflows } = useAutomationWorkflows();
-  const { adSources, rename: renameAdSource } = useWhatsAppAdSources();
+  const { adSources, isLoading: adsLoading, dataUpdatedAt: adsUpdatedAt, refetch: refetchAds, rename } = useWhatsAppAdSources();
+  const { automations, isLoading: rulesLoading, dataUpdatedAt: rulesUpdatedAt, refetch: refetchRules, toggle, remove } = useMetaAdAutomations();
 
-  const [automations, setAutomations] = useState<DbAutomation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showDialog, setShowDialog] = useState(false);
-  const [editingAutomation, setEditingAutomation] = useState<DbAutomation | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [campaignSearch, setCampaignSearch] = useState('');
-  const [campaignStatus, setCampaignStatus] = useState<'all' | 'active' | 'off'>('all');
+  const [params, setParams] = useSearchParams();
+  const tab = (['ads', 'rules', 'campaigns'].includes(params.get('tab') || '') ? params.get('tab') : 'ads') as TabKey;
+  const setTab = (next: string) => setParams(p => { p.set('tab', next); return p; }, { replace: true });
+
+  const [adFilter, setAdFilter] = useState<AdFilter>('all');
+  const [search, setSearch] = useState('');
+  const [campaignFilter, setCampaignFilter] = useState<'all' | 'live' | 'off'>('all');
+  const [refreshing, setRefreshing] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const [renamingAdId, setRenamingAdId] = useState<string | null>(null);
-  const [renameValue, setRenameValue] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<MetaAdAutomation | null>(null);
+  const [presetAdIds, setPresetAdIds] = useState<string[] | undefined>();
+  const [deleteTarget, setDeleteTarget] = useState<MetaAdAutomation | null>(null);
+  const [, setTick] = useState(0);
 
-  // Form state
-  const [formName, setFormName] = useState('');
-  const [formDescription, setFormDescription] = useState('');
-  const [formTrigger, setFormTrigger] = useState('new_lead');
-  const [formCampaignIds, setFormCampaignIds] = useState<string[]>([]);
-  const [formAdIds, setFormAdIds] = useState<string[]>([]);
-  const [formAssignMode, setFormAssignMode] = useState<'none' | 'agent' | 'team' | 'roundrobin'>('none');
-  const [formAssignAgent, setFormAssignAgent] = useState('');
-  const [formAssignTeam, setFormAssignTeam] = useState('');
-  const [formRoundRobinAgents, setFormRoundRobinAgents] = useState<string[]>([]);
-  const [formSendTemplate, setFormSendTemplate] = useState(true);
-  const [formSelectedTemplateId, setFormSelectedTemplateId] = useState('');
-  const [formAddTag, setFormAddTag] = useState(false);
-  const [formSelectedTagId, setFormSelectedTagId] = useState('');
-  const [formStartWorkflow, setFormStartWorkflow] = useState(false);
-  const [formSelectedWorkflowId, setFormSelectedWorkflowId] = useState('');
-
-  const fetchAutomations = useCallback(async () => {
-    if (!currentTenant?.id) return;
-    try {
-      const { data, error } = await supabase
-        .from('smeksh_meta_ad_automations')
-        .select('*')
-        .eq('workspace_id', currentTenant.id)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      setAutomations((data || []) as unknown as DbAutomation[]);
-    } catch (err) {
-      console.error('Error fetching automations:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentTenant?.id]);
-
-  useEffect(() => { fetchAutomations(); }, [fetchAutomations]);
-
+  // Keep "Updated … ago" fresh.
   useEffect(() => {
-    const workspaceId = currentTenant?.id;
-    if (!workspaceId) return;
-    const channel = supabase
-      .channel(`meta-automations-live-${workspaceId}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'smeksh_meta_ad_automations', filter: `workspace_id=eq.${workspaceId}` }, () => {
-        void fetchAutomations();
-      })
-      .subscribe();
-    const interval = window.setInterval(() => void fetchAutomations(), 30_000);
-    const onFocus = () => void fetchAutomations();
-    window.addEventListener('focus', onFocus);
-    return () => {
-      window.clearInterval(interval);
-      window.removeEventListener('focus', onFocus);
-      void supabase.removeChannel(channel);
-    };
-  }, [currentTenant?.id, fetchAutomations]);
+    const id = window.setInterval(() => setTick(t => t + 1), 15_000);
+    return () => window.clearInterval(id);
+  }, []);
 
-  const handleMetaSync = async () => {
-    if (!currentTenant?.id) return;
-    setSyncing(true);
+  // ---------- Derived data ----------
+  const campaignAdRows = useMemo<CampaignAdRow[]>(() => campaigns.flatMap(c => {
+    const raw = c.raw_meta_data as { ads?: Array<{ id?: string; name?: string; status?: string; effective_status?: string }> } | null;
+    const ads = raw?.ads?.length ? raw.ads : [{ id: c.meta_ad_id || c.id, name: c.ad_name || c.campaign_name, status: c.status }];
+    return ads.map((ad, i) => ({
+      id: ad.id || `${c.id}-${i}`,
+      name: ad.name || c.campaign_name,
+      status: (ad.effective_status || ad.status || c.status || '').toLowerCase(),
+      campaignId: c.id,
+      campaignName: c.campaign_name,
+      leads: Number(c.leads_count || 0),
+    }));
+  }), [campaigns]);
+
+  const campaignIdsByAdId = useMemo(() => {
+    const map = new Map<string, string[]>();
+    campaignAdRows.forEach(r => map.set(r.id, [...(map.get(r.id) || []), r.campaignId]));
+    return map;
+  }, [campaignAdRows]);
+  const metaStatusByAdId = useMemo(() => new Map(campaignAdRows.map(r => [r.id, r.status])), [campaignAdRows]);
+
+  const ruleForAd = useCallback((adId: string, extraCampaignIds: string[] = []) => findWinningRoutingRule(automations, {
+    referralSourceId: adId,
+    matchedInternalCampaignIds: [...(campaignIdsByAdId.get(adId) || []), ...extraCampaignIds],
+  }), [automations, campaignIdsByAdId]);
+
+  const currentRuleByAdId = useMemo(() => {
+    const map = new Map<string, MetaAdAutomation>();
+    adSources.forEach(ad => { const r = ruleForAd(ad.ad_id); if (r) map.set(ad.ad_id, r); });
+    return map;
+  }, [adSources, ruleForAd]);
+
+  const adLabelById = useMemo(() => new Map(adSources.map(a => [a.ad_id, adSourceLabel(a)])), [adSources]);
+  const orderedRules = useMemo(() => sortAutomationsByPriority(automations), [automations]);
+
+  const routedCount = adSources.filter(a => currentRuleByAdId.has(a.ad_id)).length;
+  const unroutedCount = adSources.length - routedCount;
+  const totalLeads = adSources.reduce((sum, a) => sum + (a.leads_count || 0), 0);
+  const activeRules = automations.filter(a => a.is_active).length;
+  const liveCampaignAds = campaignAdRows.filter(r => r.status === 'active').length;
+
+  const query = search.trim().toLowerCase();
+  const visibleAds = adSources
+    .filter(ad => adFilter === 'all' || (adFilter === 'routed') === currentRuleByAdId.has(ad.ad_id))
+    .filter(ad => !query || adSourceLabel(ad).toLowerCase().includes(query) || ad.ad_id.includes(query) || (ad.headline || '').toLowerCase().includes(query))
+    .sort((a, b) => Number(currentRuleByAdId.has(a.ad_id)) - Number(currentRuleByAdId.has(b.ad_id)) || Date.parse(b.last_seen_at) - Date.parse(a.last_seen_at));
+
+  const visibleCampaignAds = campaignAdRows
+    .filter(r => campaignFilter === 'all' || (campaignFilter === 'live') === (r.status === 'active'))
+    .filter(r => !query || r.name.toLowerCase().includes(query) || r.campaignName.toLowerCase().includes(query))
+    .sort((a, b) => Number(b.status === 'active') - Number(a.status === 'active') || a.name.localeCompare(b.name));
+
+  const latestMetaSync = campaigns.reduce<string | null>((latest, c) =>
+    c.last_synced_at && (!latest || c.last_synced_at > latest) ? c.last_synced_at : latest, null);
+  const updatedAt = Math.max(adsUpdatedAt || 0, rulesUpdatedAt || 0);
+
+  // ---------- Actions ----------
+  const refreshAll = async () => {
+    setRefreshing(true);
     try {
-      const { data, error } = await supabase.functions.invoke('meta-ads-sync', { body: { tenantId: currentTenant.id } });
+      await withTimeout(Promise.all([refetchAds(), refetchRules(), refetchMeta()]), 15_000, 'Refresh is taking too long. Check your internet and try again.');
+      toast.success('Up to date');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not refresh');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const syncingRef = useRef(false);
+  const syncFromMeta = useCallback(async (silent = false) => {
+    if (!currentTenant?.id || syncingRef.current) return;
+    syncingRef.current = true;
+    if (!silent) setSyncing(true);
+    try {
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke('meta-ads-sync', { body: { tenantId: currentTenant.id } }),
+        60_000, 'Meta is slow to answer. Your routing still works — try again in a minute.',
+      );
       if (error) throw error;
       if (data?.error && !data?.success) throw new Error(data.error);
-      await refetchMetaAds();
-      toast.success(`Updated ${data?.synced || 0} campaigns from Meta`);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not refresh Meta Ads');
+      await refetchMeta();
+      if (!silent) toast.success(`Updated ${data?.synced || 0} campaigns from Meta`);
+    } catch (err) {
+      if (!silent) toast.error(err instanceof Error ? err.message : 'Could not update from Meta');
     } finally {
-      setSyncing(false);
+      syncingRef.current = false;
+      if (!silent) setSyncing(false);
     }
-  };
+  }, [currentTenant?.id, refetchMeta]);
 
-  const getCampaignAds = (campaign: typeof campaigns[number]) => {
-    const raw = campaign.raw_meta_data as { ads?: Array<{ id?: string; name?: string; status?: string; effective_status?: string; adset_name?: string }> } | null;
-    if (raw?.ads?.length) return raw.ads;
-    return campaign.ad_name ? [{ id: campaign.meta_ad_id || campaign.id, name: campaign.ad_name, status: campaign.status }] : [];
-  };
-
-  const getCampaignDisplayName = (campaign: typeof campaigns[number]) => {
-    const ads = getCampaignAds(campaign);
-    if (ads.length === 1) return ads[0].name || campaign.campaign_name;
-    if (ads.length > 1) return `${ads[0].name || campaign.campaign_name} +${ads.length - 1}`;
-    return campaign.campaign_name;
-  };
-
-  const normalizedStatus = (status?: string | null) => (status || '').toLowerCase();
-  const isActiveCampaign = (campaign: typeof campaigns[number]) => normalizedStatus(campaign.status) === 'active';
-  const campaignAdRows = campaigns.flatMap(campaign => {
-    const ads = getCampaignAds(campaign);
-    if (ads.length === 0) {
-      return [{
-        id: campaign.id,
-        name: campaign.ad_name || campaign.campaign_name,
-        status: campaign.status,
-        campaign,
-      }];
-    }
-    return ads.map((ad, index) => ({
-      id: ad.id || `${campaign.id}-${index}`,
-      name: ad.name || campaign.campaign_name,
-      status: ad.effective_status || ad.status || campaign.status,
-      campaign,
-    }));
-  });
-  const isActiveAd = (status?: string | null) => normalizedStatus(status) === 'active';
-  const activeAds = campaignAdRows.filter(ad => isActiveAd(ad.status));
-  const inactiveAds = campaignAdRows.filter(ad => !isActiveAd(ad.status));
-  const activeAutomations = automations.filter(automation => automation.is_active);
-  const latestSync = campaigns.reduce<string | null>((latest, campaign) => {
-    if (!campaign.last_synced_at) return latest;
-    return !latest || new Date(campaign.last_synced_at) > new Date(latest) ? campaign.last_synced_at : latest;
-  }, null);
-
+  // Quietly refresh campaign status from Meta when it is older than 5 minutes.
+  const latestSyncRef = useRef(latestMetaSync);
+  latestSyncRef.current = latestMetaSync;
   useEffect(() => {
-    const workspaceId = currentTenant?.id;
-    if (!workspaceId || connectedAccounts.length === 0) return;
-
-    const syncInBackground = async () => {
-      const { data, error } = await supabase.functions.invoke('meta-ads-sync', { body: { tenantId: workspaceId } });
-      if (!error && !data?.error) await refetchMetaAds();
+    if (connectedAccounts.length === 0) return;
+    const maybeSync = () => {
+      const last = latestSyncRef.current ? Date.parse(latestSyncRef.current) : 0;
+      if (Date.now() - last > 5 * 60_000) void syncFromMeta(true);
     };
+    maybeSync();
+    const id = window.setInterval(maybeSync, 60_000);
+    return () => window.clearInterval(id);
+  }, [connectedAccounts.length, syncFromMeta]);
 
-    const lastSyncTime = latestSync ? new Date(latestSync).getTime() : 0;
-    if (Date.now() - lastSyncTime > 5 * 60_000) void syncInBackground();
-    const interval = window.setInterval(() => void syncInBackground(), 5 * 60_000);
-    return () => window.clearInterval(interval);
-  }, [connectedAccounts.length, currentTenant?.id, latestSync]);
+  const openNew = (adIds?: string[]) => { setEditing(null); setPresetAdIds(adIds); setDialogOpen(true); };
+  const openEdit = (rule: MetaAdAutomation) => { setEditing(rule); setPresetAdIds(undefined); setDialogOpen(true); };
 
-  const filteredAds = campaignAdRows
-    .filter(ad => campaignStatus === 'all' || (campaignStatus === 'active' ? isActiveAd(ad.status) : !isActiveAd(ad.status)))
-    .filter(ad => {
-      const query = campaignSearch.trim().toLowerCase();
-      if (!query) return true;
-      return [ad.name, ad.campaign.campaign_name, ad.campaign.adset_name]
-        .some(value => value?.toLowerCase().includes(query));
-    })
-    .sort((a, b) => Number(isActiveAd(b.status)) - Number(isActiveAd(a.status)) || a.name.localeCompare(b.name));
-
-  const getAutomationAdIds = (auto: DbAutomation): string[] => {
-    const raw = (auto.trigger_conditions as { meta_ad_ids?: unknown } | null)?.meta_ad_ids;
-    return Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string' && v.length > 0) : [];
+  const routeAd = (adId: string, rule: MetaAdAutomation | null) => {
+    if (rule && routingSpecificity(rule) === 0) openEdit(rule);
+    else openNew([adId]);
   };
 
-  const adSourceById = new Map(adSources.map(ad => [ad.ad_id, ad]));
-  const automationsByAdId = new Map<string, DbAutomation[]>();
-  automations.forEach(auto => {
-    getAutomationAdIds(auto).forEach(adId => {
-      automationsByAdId.set(adId, [...(automationsByAdId.get(adId) || []), auto]);
-    });
-  });
-
-  const resetForm = () => {
-    setFormName('');
-    setFormDescription('');
-    setFormTrigger('new_lead');
-    setFormCampaignIds([]);
-    setFormAdIds([]);
-    setFormAssignMode('none');
-    setFormAssignAgent('');
-    setFormAssignTeam('');
-    setFormRoundRobinAgents([]);
-    setFormSendTemplate(true);
-    setFormSelectedTemplateId('');
-    setFormAddTag(false);
-    setFormSelectedTagId('');
-    setFormStartWorkflow(false);
-    setFormSelectedWorkflowId('');
-  };
-
-  const populateFormFromAutomation = (auto: DbAutomation) => {
-    setFormName(auto.name);
-    setFormDescription(auto.description || '');
-    setFormTrigger(auto.trigger_type);
-    setFormCampaignIds(auto.trigger_campaign_ids || []);
-    setFormAdIds(getAutomationAdIds(auto));
-    const actions = (auto.actions || []) as Record<string, unknown>[];
-    
-    // Restore action states
-    const sendTpl = actions.find(a => a.type === 'send_template');
-    setFormSendTemplate(!!sendTpl);
-    setFormSelectedTemplateId((sendTpl?.template_id as string) || '');
-    
-    const addTag = actions.find(a => a.type === 'add_tag');
-    setFormAddTag(!!addTag);
-    setFormSelectedTagId((addTag?.tag_id as string) || '');
-    
-    const startWf = actions.find(a => a.type === 'start_workflow');
-    setFormStartWorkflow(!!startWf);
-    setFormSelectedWorkflowId((startWf?.workflow_id as string) || '');
-    
-    const assignAgent = actions.find(a => a.type === 'assign_agent');
-    const assignTeam = actions.find(a => a.type === 'assign_team');
-    const roundRobin = actions.find(a => a.type === 'assign_agents_roundrobin');
-    
-    if (roundRobin) {
-      setFormAssignMode('roundrobin');
-      setFormRoundRobinAgents((roundRobin.agent_ids as string[]) || []);
-    } else if (assignTeam) {
-      setFormAssignMode('team');
-      setFormAssignTeam((assignTeam.team_id as string) || '');
-    } else if (assignAgent) {
-      setFormAssignMode('agent');
-      setFormAssignAgent((assignAgent.agent_id as string) || '');
-    } else {
-      setFormAssignMode('none');
-    }
-  };
-
-  const openCreate = () => {
-    resetForm();
-    setEditingAutomation(null);
-    setShowDialog(true);
-  };
-
-  const openCreateForAd = (ad: WhatsAppAdSource) => {
-    resetForm();
-    setEditingAutomation(null);
-    setFormName(`${adSourceLabel(ad)} → agents`);
-    setFormTrigger('ad_click');
-    setFormAdIds([ad.ad_id]);
-    setFormSendTemplate(false);
-    setFormAssignMode(members.length >= 2 ? 'roundrobin' : 'agent');
-    setShowDialog(true);
-  };
-
-  const saveRename = async (ad: WhatsAppAdSource) => {
+  const handleToggle = async (rule: MetaAdAutomation) => {
     try {
-      await renameAdSource(ad.id, renameValue);
-      toast.success('Ad name saved');
-      setRenamingAdId(null);
-    } catch {
-      toast.error('Only workspace admins can rename ads');
-    }
+      await toggle(rule.id, !rule.is_active);
+      toast.success(rule.is_active ? 'Rule paused' : 'Rule turned on');
+    } catch { toast.error('Could not update the rule'); }
   };
 
-  const openEdit = (auto: DbAutomation) => {
-    populateFormFromAutomation(auto);
-    setEditingAutomation(auto);
-    setShowDialog(true);
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try { await remove(deleteTarget.id); toast.success('Rule deleted'); }
+    catch { toast.error('Could not delete the rule'); }
+    finally { setDeleteTarget(null); }
   };
 
-  const buildActions = () => {
-    const actions: Record<string, unknown>[] = [];
-    if (formSendTemplate && formSelectedTemplateId) {
-      const tpl = templates.find(t => t.id === formSelectedTemplateId);
-      actions.push({ type: 'send_template', label: `Send: ${tpl?.name || 'Template'}`, template_id: formSelectedTemplateId, template_name: tpl?.name || null });
-    }
-    if (formAddTag && formSelectedTagId) {
-      const tag = tags.find(t => t.id === formSelectedTagId);
-      actions.push({ type: 'add_tag', label: `Tag: ${tag?.name || 'Tag'}`, tag_id: formSelectedTagId, tag_name: tag?.name || null });
-    }
-    if (formAssignMode === 'agent' && formAssignAgent && formAssignAgent !== 'none') {
-      const member = members.find(m => m.user_id === formAssignAgent || m.id === formAssignAgent);
-      actions.push({ type: 'assign_agent', label: `Assign to ${member?.display_name || member?.profile?.full_name || 'Agent'}`, agent_id: formAssignAgent });
-    }
-    if (formAssignMode === 'team' && formAssignTeam && formAssignTeam !== 'none') {
-      const team = teams.find(t => t.id === formAssignTeam);
-      actions.push({ type: 'assign_team', label: `Team: ${team?.name || 'Team'}`, team_id: formAssignTeam });
-    }
-    if (formAssignMode === 'roundrobin' && formRoundRobinAgents.length >= 2) {
-      const agentNames = formRoundRobinAgents.map(id => {
-        const m = members.find(m => m.user_id === id || m.id === id);
-        return m?.display_name || m?.profile?.full_name || 'Agent';
-      });
-      actions.push({ type: 'assign_agents_roundrobin', label: `Round Robin: ${agentNames.join(', ')}`, agent_ids: formRoundRobinAgents, agent_names: agentNames });
-    }
-    if (formStartWorkflow && formSelectedWorkflowId) {
-      const wf = workflows.find(w => w.id === formSelectedWorkflowId);
-      actions.push({ type: 'start_workflow', label: `Workflow: ${wf?.name || 'Workflow'}`, workflow_id: formSelectedWorkflowId, workflow_name: wf?.name || null });
-    }
-    return actions;
+  const handleRename = async (ad: WhatsAppAdSource, name: string) => {
+    try { await rename(ad.id, name); toast.success('Ad name saved'); }
+    catch { toast.error('Only workspace admins can rename ads'); throw new Error('rename failed'); }
   };
 
-  const handleSave = async () => {
-    if (!currentTenant?.id || !formName.trim()) {
-      toast.error('Please provide a name');
-      return;
-    }
-    if (formSendTemplate && !formSelectedTemplateId) {
-      toast.error('Please select a template');
-      return;
-    }
-    if (formAddTag && !formSelectedTagId) {
-      toast.error('Please select a tag');
-      return;
-    }
-    if (formStartWorkflow && !formSelectedWorkflowId) {
-      toast.error('Please select a workflow');
-      return;
-    }
-    if (formAssignMode === 'roundrobin' && formRoundRobinAgents.length < 2) {
-      toast.error('Select at least 2 agents for round-robin');
-      return;
-    }
-    setSaving(true);
-    try {
-      const actions = buildActions();
-      if (actions.length === 0) {
-        toast.error('Please select at least one action');
-        setSaving(false);
-        return;
-      }
-      const adAccountId = connectedAccounts[0]?.id || null;
-      const payload = {
-        workspace_id: currentTenant.id,
-        name: formName.trim(),
-        description: formDescription.trim() || null,
-        trigger_type: formTrigger,
-        trigger_ad_account_id: adAccountId,
-        trigger_campaign_ids: formCampaignIds.length > 0 ? formCampaignIds : null,
-        trigger_conditions: {
-          ...((editingAutomation?.trigger_conditions as Record<string, unknown>) || {}),
-          meta_ad_ids: formAdIds,
-        } as unknown as any,
-        actions: actions as unknown as any,
-      };
-
-      if (editingAutomation) {
-        const { error } = await supabase
-          .from('smeksh_meta_ad_automations')
-          .update(payload)
-          .eq('id', editingAutomation.id);
-        if (error) throw error;
-        toast.success('Automation updated');
-      } else {
-        const { error } = await supabase
-          .from('smeksh_meta_ad_automations')
-          .insert({ ...payload, is_active: true });
-        if (error) throw error;
-        toast.success('Automation created');
-      }
-      setShowDialog(false);
-      setEditingAutomation(null);
-      resetForm();
-      await fetchAutomations();
-    } catch (err: any) {
-      console.error('Save automation error:', err);
-      toast.error(err.message || 'Failed to save automation');
-    } finally {
-      setSaving(false);
-    }
+  const adStatus = (ad: WhatsAppAdSource): { status: 'live' | 'paused' | 'recent' | 'quiet'; label: string } => {
+    const meta = metaStatusByAdId.get(ad.ad_id);
+    if (meta) return meta === 'active' ? { status: 'live', label: 'Live on Meta' } : { status: 'paused', label: 'Paused on Meta' };
+    const age = Date.now() - Date.parse(ad.last_seen_at);
+    if (age < DAY) return { status: 'recent', label: 'Chats today' };
+    if (age < 7 * DAY) return { status: 'recent', label: 'Chats this week' };
+    return { status: 'quiet', label: 'No recent chats' };
   };
 
-  const handleToggle = async (id: string, currentState: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('smeksh_meta_ad_automations')
-        .update({ is_active: !currentState })
-        .eq('id', id);
-      if (error) throw error;
-      setAutomations(prev => prev.map(a => a.id === id ? { ...a, is_active: !currentState } : a));
-      toast.success(!currentState ? 'Automation activated' : 'Automation paused');
-    } catch {
-      toast.error('Failed to update');
-    }
+  const ruleSources = (rule: MetaAdAutomation) => {
+    const ads = getTargetAdIds(rule.trigger_conditions).map(id => adLabelById.get(id) || `Ad …${id.slice(-6)}`);
+    const camps = (rule.trigger_campaign_ids || []).map(id => campaigns.find(c => c.id === id)?.campaign_name || 'Campaign');
+    const all = [...ads, ...camps];
+    return all.length ? all : ['Every ad'];
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('smeksh_meta_ad_automations')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
-      setAutomations(prev => prev.filter(a => a.id !== id));
-      toast.success('Automation deleted');
-    } catch {
-      toast.error('Failed to delete');
-    } finally {
-      setDeleteTarget(null);
-    }
-  };
+  const loading = adsLoading || rulesLoading;
 
-  const toggleCampaign = (campaignId: string) => {
-    setFormCampaignIds(prev =>
-      prev.includes(campaignId) ? prev.filter(c => c !== campaignId) : [...prev, campaignId]
-    );
-  };
-
-  const toggleAdSource = (adId: string) => {
-    setFormAdIds(prev => (prev.includes(adId) ? prev.filter(a => a !== adId) : [...prev, adId]));
-  };
-
-  const toggleRoundRobinAgent = (agentId: string) => {
-    setFormRoundRobinAgents(prev =>
-      prev.includes(agentId) ? prev.filter(a => a !== agentId) : [...prev, agentId]
-    );
-  };
-
-  const getActionLabel = (action: Record<string, unknown>) => {
-    const type = action.type as string;
-    if (type === 'assign_agent' && action.agent_id) {
-      const member = members.find(m => m.user_id === action.agent_id || m.id === action.agent_id);
-      return `Assign to ${member?.display_name || member?.profile?.full_name || 'Agent'}`;
-    }
-    if (type === 'assign_team' && action.team_id) {
-      const team = teams.find(t => t.id === action.team_id);
-      return `Team: ${team?.name || 'Team'}`;
-    }
-    if (type === 'assign_agents_roundrobin') {
-      const names = (action.agent_names as string[]) || [];
-      return `Round Robin: ${names.length} agents`;
-    }
-    return (action.label as string) || type;
-  };
+  // ---------- UI ----------
+  const stats = [
+    { key: 'all', label: 'Ads bringing chats', value: adSources.length, icon: MessageCircle, tone: 'bg-primary/10 text-primary', onClick: () => { setTab('ads'); setAdFilter('all'); } },
+    { key: 'routed', label: 'Ads with agents', value: routedCount, icon: CheckCircle2, tone: 'bg-success/10 text-success', onClick: () => { setTab('ads'); setAdFilter('routed'); } },
+    { key: 'unrouted', label: 'Ads needing agents', value: unroutedCount, icon: AlertTriangle, tone: unroutedCount ? 'bg-warning/15 text-warning' : 'bg-muted text-muted-foreground', onClick: () => { setTab('ads'); setAdFilter('unrouted'); } },
+    { key: 'leads', label: 'Leads from ads', value: totalLeads.toLocaleString(), icon: TrendingUp, tone: 'bg-info/10 text-info', onClick: () => setTab('ads') },
+  ];
 
   return (
     <DashboardLayout>
-      <div className="p-3 sm:p-6 space-y-4 sm:space-y-5 max-w-7xl mx-auto">
+      <div className="mx-auto max-w-6xl space-y-5 p-3 sm:p-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary text-primary-foreground shadow-md">
-              <Zap className="h-5 w-5 sm:h-6 sm:w-6" />
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md">
+              <Route className="h-5 w-5" />
             </div>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Ad Automations</h1>
-              <p className="text-sm text-muted-foreground">Route ad leads to the right agents automatically</p>
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Ad lead routing</h1>
+              <p className="text-sm text-muted-foreground">See which agents get the WhatsApp leads from each ad.</p>
             </div>
           </div>
-          <div className="flex w-full gap-2 sm:w-auto">
-            <Button variant="outline" onClick={handleMetaSync} disabled={syncing || connectedAccounts.length === 0} className="gap-2 flex-1 sm:flex-none">
-              <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
-              Refresh Meta
+          <div className="flex items-center gap-2">
+            <span className="hidden text-xs text-muted-foreground md:inline">
+              {updatedAt ? `Updated ${formatDistanceToNow(updatedAt, { addSuffix: true })}` : 'Loading…'}
+            </span>
+            <Button variant="outline" onClick={refreshAll} disabled={refreshing} className="flex-1 gap-2 sm:flex-none">
+              <RefreshCw className={cn('h-4 w-4', refreshing && 'animate-spin')} />Refresh
             </Button>
-            <Button onClick={openCreate} className="gap-2 flex-1 sm:flex-none">
-              <Plus className="h-4 w-4" />
-              Create Automation
+            <Button onClick={() => openNew()} className="flex-1 gap-2 sm:flex-none">
+              <Plus className="h-4 w-4" />New routing
             </Button>
           </div>
-        </div>
+        </header>
 
-        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4 sm:gap-3">
-          {[
-            campaigns.length > 0
-              ? { label: 'Active ads', value: activeAds.length, icon: Radio, tone: 'text-success bg-success/10' }
-              : { label: 'Ads sending chats', value: adSources.length, icon: MessageCircle, tone: 'text-success bg-success/10' },
-            campaigns.length > 0
-              ? { label: 'Paused / off', value: inactiveAds.length, icon: Pause, tone: 'text-warning bg-warning/10' }
-              : { label: 'Ads without routing', value: adSources.filter(ad => !automationsByAdId.get(ad.ad_id)?.some(a => a.is_active)).length, icon: Pause, tone: 'text-warning bg-warning/10' },
-            { label: 'Active automations', value: activeAutomations.length, icon: Zap, tone: 'text-primary bg-primary/10' },
-            { label: 'Last Meta update', value: latestSync ? new Date(latestSync).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Not synced', icon: Clock, tone: 'text-info bg-info/10' },
-          ].map(item => (
-            <Card key={item.label} className="border shadow-card">
-              <CardContent className="relative min-h-[76px] p-3 sm:flex sm:items-center sm:gap-3 sm:p-4">
-                <div className={`absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg sm:static sm:h-9 sm:w-9 sm:shrink-0 ${item.tone}`}><item.icon className="h-4 w-4" /></div>
-                <div className="min-w-0 pr-8 sm:pr-0">
-                  <p className="text-[11px] leading-4 text-muted-foreground sm:text-xs">{item.label}</p>
-                  <p className="mt-1 break-words text-base font-semibold leading-5 sm:text-lg" title={String(item.value)}>{item.value}</p>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Summary */}
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+          {stats.map(s => (
+            <button key={s.key} type="button" onClick={s.onClick}
+              className={cn('flex items-center gap-3 rounded-2xl border bg-card p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-4',
+                tab === 'ads' && adFilter === s.key && 'ring-2 ring-primary/40')}>
+              <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', s.tone)}><s.icon className="h-5 w-5" /></span>
+              <span className="min-w-0">
+                <span className="block text-xl font-bold leading-6">{loading ? '–' : s.value}</span>
+                <span className="block text-[11px] leading-4 text-muted-foreground sm:text-xs">{s.label}</span>
+              </span>
+            </button>
           ))}
         </div>
 
-        {/* Ads that sent people to WhatsApp — available without Meta ad-account access */}
-        <Card className="border shadow-card">
-          <CardHeader className="p-4 pb-2">
-            <CardTitle className="flex items-center gap-2 text-base"><MessageCircle className="h-4 w-4 text-primary" />Ads sending WhatsApp chats</CardTitle>
-            <p className="mt-1 text-xs text-muted-foreground">Every ad that has brought a chat to your WhatsApp. Pick agents per ad with “Route leads”.</p>
-          </CardHeader>
-          <CardContent className="p-4 pt-2">
-            {adSources.length === 0 ? (
-              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                No ad chats yet. An ad appears here as soon as someone messages you from it.
-              </div>
-            ) : (
-              <div className="grid gap-2 md:grid-cols-2">
-                {adSources.map(ad => {
-                  const routing = (automationsByAdId.get(ad.ad_id) || []).filter(a => a.is_active);
-                  const isRenaming = renamingAdId === ad.id;
-                  return (
-                    <div key={ad.id} className="flex min-w-0 flex-col gap-2 rounded-lg border bg-card p-3">
-                      <div className="flex min-w-0 items-start gap-2">
-                        <div className="min-w-0 flex-1">
-                          {isRenaming ? (
-                            <div className="flex items-center gap-1">
-                              <Input
-                                autoFocus
-                                value={renameValue}
-                                onChange={e => setRenameValue(e.target.value)}
-                                onKeyDown={e => { if (e.key === 'Enter') void saveRename(ad); if (e.key === 'Escape') setRenamingAdId(null); }}
-                                placeholder="e.g. Europe jobs – Tagalog"
-                                className="h-8 text-sm"
-                                maxLength={80}
-                              />
-                              <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" aria-label="Save name" onClick={() => void saveRename(ad)}><Check className="h-4 w-4" /></Button>
-                              <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" aria-label="Cancel" onClick={() => setRenamingAdId(null)}><X className="h-4 w-4" /></Button>
-                            </div>
-                          ) : (
-                            <div className="flex min-w-0 items-center gap-1">
-                              <p className="truncate text-sm font-semibold" title={adSourceLabel(ad)}>{adSourceLabel(ad)}</p>
-                              <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0" aria-label="Rename ad" onClick={() => { setRenamingAdId(ad.id); setRenameValue(ad.display_name || adSourceLabel(ad)); }}>
-                                <Pencil className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          )}
-                          <p className="truncate text-[11px] text-muted-foreground">Ad ID {ad.ad_id}{ad.display_name && ad.headline ? ` · ${ad.headline}` : ''}</p>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                        <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" />{ad.leads_count.toLocaleString()} leads</span>
-                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" />Last chat {formatDistanceToNow(new Date(ad.last_seen_at), { addSuffix: true })}</span>
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        {routing.length > 0 ? (
-                          <Badge variant="secondary" className="max-w-[65%] truncate text-[10px]" title={routing.map(r => r.name).join(', ')}>
-                            <Users className="mr-1 h-3 w-3" />{routing[0].name}{routing.length > 1 ? ` +${routing.length - 1}` : ''}
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-[10px] text-muted-foreground">Not routed</Badge>
-                        )}
-                        <Button
-                          size="sm"
-                          variant={routing.length > 0 ? 'outline' : 'default'}
-                          className="h-7 gap-1 px-2.5 text-xs"
-                          onClick={() => (routing.length > 0 ? openEdit(routing[0]) : openCreateForAd(ad))}
-                        >
-                          <UserPlus className="h-3.5 w-3.5" />
-                          {routing.length > 0 ? 'Edit routing' : 'Route leads'}
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
+        <Tabs value={tab} onValueChange={setTab} className="space-y-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <TabsList className="h-auto w-full justify-start overflow-x-auto rounded-xl p-1 md:w-auto">
+              <TabsTrigger value="ads" className="gap-1.5 rounded-lg px-3 py-1.5">Ads → Agents<CountPill n={adSources.length} /></TabsTrigger>
+              <TabsTrigger value="rules" className="gap-1.5 rounded-lg px-3 py-1.5">Routing rules<CountPill n={activeRules} /></TabsTrigger>
+              <TabsTrigger value="campaigns" className="gap-1.5 rounded-lg px-3 py-1.5">Facebook campaigns{campaigns.length > 0 && <CountPill n={liveCampaignAds} />}</TabsTrigger>
+            </TabsList>
+            {tab !== 'rules' && (
+              <div className="relative md:w-72">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input value={search} onChange={e => setSearch(e.target.value)} placeholder={tab === 'ads' ? 'Search ads' : 'Search ads or campaigns'} className="h-9 rounded-xl pl-9" />
               </div>
             )}
-          </CardContent>
-        </Card>
-
-        {campaigns.length > 0 && (
-        <Card className="border shadow-card">
-          <CardHeader className="p-4 pb-2">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2 text-base"><Megaphone className="h-4 w-4 text-primary" />Live campaigns</CardTitle>
-                <p className="mt-1 text-xs text-muted-foreground">Current status from your latest Meta sync. Active ads are shown first.</p>
-              </div>
-              <div className="flex gap-1 rounded-lg bg-muted p-1">
-                {(['all', 'active', 'off'] as const).map(status => (
-                  <Button key={status} type="button" variant={campaignStatus === status ? 'secondary' : 'ghost'} size="sm" onClick={() => setCampaignStatus(status)} className="h-7 px-3 text-xs capitalize">
-                    {status === 'off' ? 'Paused / off' : status}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <div className="relative mt-2">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={campaignSearch} onChange={event => setCampaignSearch(event.target.value)} placeholder="Search ad, campaign, or ad set" className="h-9 pl-9" />
-            </div>
-          </CardHeader>
-          <CardContent className="p-4 pt-2">
-            {filteredAds.length === 0 ? (
-              <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                {campaigns.length === 0 ? 'No campaigns synced yet. Use Refresh Meta to load current ads.' : 'No ads match this view.'}
-              </div>
-            ) : (
-              <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-                {filteredAds.slice(0, 12).map(ad => (
-                  <div key={`${ad.campaign.id}-${ad.id}`} className="flex min-w-0 items-start gap-3 rounded-lg border bg-card p-3">
-                    <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${isActiveAd(ad.status) ? 'bg-success' : 'bg-muted-foreground/40'}`} />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="truncate text-sm font-semibold" title={ad.name}>{ad.name}</p>
-                        <Badge variant={isActiveAd(ad.status) ? 'default' : 'secondary'} className="shrink-0 text-[10px] capitalize">{normalizedStatus(ad.status).replace(/_/g, ' ') || 'unknown'}</Badge>
-                      </div>
-                      <p className="truncate text-xs text-muted-foreground" title={ad.campaign.campaign_name}>Campaign: {ad.campaign.campaign_name}</p>
-                      <div className="mt-2 flex gap-3 text-[11px] text-muted-foreground">
-                        <span className="flex items-center gap-1"><MousePointerClick className="h-3 w-3" />{Number(ad.campaign.clicks || 0).toLocaleString()} campaign clicks</span>
-                        <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" />{Number(ad.campaign.leads_count || 0).toLocaleString()} leads</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        )}
-
-        {/* Automations List */}
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="px-4 sm:px-6">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <GitBranch className="h-4 w-4 text-primary" />
-              Your Automations
-              <Badge variant="secondary" className="text-xs">{automations.length}</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 sm:px-6 space-y-3">
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : automations.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <Zap className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                <p className="font-medium">No automations yet</p>
-                <p className="text-sm mt-1">Create your first automation to route ad leads automatically</p>
-              </div>
-            ) : (
-              automations.map((automation) => {
-                const triggerInfo = TRIGGER_LABELS[automation.trigger_type] || { label: automation.trigger_type, icon: Zap };
-                const TriggerIcon = triggerInfo.icon;
-                const actions = (automation.actions || []) as Record<string, unknown>[];
-                const targetedCampaigns = [
-                  ...getAutomationAdIds(automation).map(adId => {
-                    const ad = adSourceById.get(adId);
-                    return ad ? adSourceLabel(ad) : `Ad …${adId.slice(-6)}`;
-                  }),
-                  ...(automation.trigger_campaign_ids || [])
-                    .map(cid => {
-                      const campaign = campaigns.find(c => c.id === cid);
-                      return campaign ? getCampaignDisplayName(campaign) : null;
-                    })
-                    .filter((name): name is string => !!name),
-                ];
-
-                return (
-                  <div
-                    key={automation.id}
-                    className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 sm:p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors"
-                  >
-                    <div className={`p-2 rounded-xl ${automation.is_active ? 'bg-primary/10' : 'bg-muted'} flex-shrink-0`}>
-                      <TriggerIcon className={`h-4 w-4 ${automation.is_active ? 'text-primary' : 'text-muted-foreground'}`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="font-semibold text-sm">{automation.name}</h4>
-                        <Badge className={`text-[10px] ${automation.is_active ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' : ''}`} variant={automation.is_active ? 'default' : 'secondary'}>
-                          {automation.is_active ? 'Active' : 'Paused'}
-                        </Badge>
-                      </div>
-                      {automation.description && (
-                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{automation.description}</p>
-                      )}
-                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                        <Badge variant="outline" className="text-[10px] gap-0.5">
-                          <TriggerIcon className="h-2.5 w-2.5" />
-                          {triggerInfo.label}
-                        </Badge>
-                        <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                        {actions.slice(0, 3).map((action, idx) => {
-                          const ActionIcon = ACTION_ICONS[(action.type as string)] || Zap;
-                          return (
-                            <Badge key={idx} variant="outline" className="text-[10px] gap-0.5">
-                              <ActionIcon className="h-2.5 w-2.5" />
-                              <span className="truncate max-w-[100px]">{getActionLabel(action)}</span>
-                            </Badge>
-                          );
-                        })}
-                        {actions.length > 3 && <Badge variant="outline" className="text-[10px]">+{actions.length - 3}</Badge>}
-                      </div>
-                      {targetedCampaigns.length > 0 && (
-                        <div className="flex items-center gap-1 mt-1 flex-wrap">
-                          <Target className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                          {targetedCampaigns.slice(0, 2).map((name, i) => (
-                            <Badge key={i} variant="secondary" className="text-[10px]">{name}</Badge>
-                          ))}
-                          {targetedCampaigns.length > 2 && <Badge variant="secondary" className="text-[10px]">+{targetedCampaigns.length - 2}</Badge>}
-                        </div>
-                      )}
-                      <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
-                        <span>{automation.executions_count || 0} runs</span>
-                        {automation.last_executed_at && <span>Last: {new Date(automation.last_executed_at).toLocaleDateString()}</span>}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 ml-auto sm:ml-0 flex-shrink-0">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(automation)}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Switch checked={automation.is_active} onCheckedChange={() => handleToggle(automation.id, automation.is_active)} />
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => setDeleteTarget(automation.id)}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Create / Edit Dialog */}
-      <Dialog open={showDialog} onOpenChange={(open) => { setShowDialog(open); if (!open) { setEditingAutomation(null); resetForm(); } }}>
-        <DialogContent className="sm:max-w-lg mx-4">
-          <DialogHeader>
-            <DialogTitle className="text-base">{editingAutomation ? 'Edit Automation' : 'Create Automation'}</DialogTitle>
-            <DialogDescription className="text-xs">Pick ads, then choose who gets their leads</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-            {/* Name & Description */}
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium">Automation Name *</Label>
-              <Input placeholder="e.g., Ad A → Agent 1, 2, 3" value={formName} onChange={e => setFormName(e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">Description</Label>
-              <Textarea placeholder="What does this automation do?" rows={2} value={formDescription} onChange={e => setFormDescription(e.target.value)} />
-            </div>
-
-            {/* Trigger */}
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium">When this happens</Label>
-              <Select value={formTrigger} onValueChange={setFormTrigger}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="new_lead">New Lead from Meta Ad</SelectItem>
-                  <SelectItem value="first_message">First Message After Ad Click</SelectItem>
-                  <SelectItem value="ad_click">Ad Click (Immediate)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* WhatsApp ad selection — works without Meta ad-account access */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium flex items-center gap-1.5">
-                  <MessageCircle className="h-3.5 w-3.5 text-primary" />
-                  From these ads
-                </Label>
-                {formAdIds.length > 0 && (
-                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setFormAdIds([])}>
-                    Clear all
-                  </Button>
-                )}
-              </div>
-              <p className="text-[11px] text-muted-foreground">Ads that have sent people to your WhatsApp. Leave empty for all.</p>
-              {adSources.length > 0 ? (
-                <div className="grid grid-cols-1 gap-1.5 max-h-44 overflow-y-auto border rounded-lg p-2 bg-muted/20">
-                  {adSources.map(ad => {
-                    const isSelected = formAdIds.includes(ad.ad_id);
-                    return (
-                      <button
-                        key={ad.id}
-                        type="button"
-                        onClick={() => toggleAdSource(ad.ad_id)}
-                        className={`flex items-center gap-2.5 p-2 rounded-lg text-left transition-all text-xs ${
-                          isSelected ? 'bg-primary/10 border border-primary/30 ring-1 ring-primary/20' : 'hover:bg-muted/50 border border-transparent'
-                        }`}
-                      >
-                        <div className={`h-4 w-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isSelected ? 'bg-primary border-primary' : 'border-muted-foreground/30'}`}>
-                          {isSelected && <CheckCircle2 className="h-3 w-3 text-primary-foreground" />}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-medium">{adSourceLabel(ad)}</p>
-                          <p className="truncate text-[10px] text-muted-foreground">Ad ID {ad.ad_id} · {ad.leads_count.toLocaleString()} leads</p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground italic p-3 border rounded-lg bg-muted/20">
-                  No ad chats yet. Ads appear here after the first person messages you from them.
-                </p>
-              )}
-              {formAdIds.some(id => !adSourceById.has(id)) && (
-                <p className="text-[11px] text-muted-foreground">+{formAdIds.filter(id => !adSourceById.has(id)).length} older ad(s) also selected</p>
-              )}
-            </div>
-
-            {/* Campaign Selection (needs Meta ad-account access) */}
-            {campaigns.length > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium flex items-center gap-1.5">
-                  <Target className="h-3.5 w-3.5 text-primary" />
-                  Or from these campaigns
-                </Label>
-                {formCampaignIds.length > 0 && (
-                  <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={() => setFormCampaignIds([])}>
-                    Clear all
-                  </Button>
-                )}
-              </div>
-              <p className="text-[11px] text-muted-foreground">Select specific campaigns or leave empty for all</p>
-                <div className="grid grid-cols-1 gap-1.5 max-h-40 overflow-y-auto border rounded-lg p-2 bg-muted/20">
-                  {[...campaigns].sort((a, b) => Number(isActiveCampaign(b)) - Number(isActiveCampaign(a))).map(campaign => {
-                    const isSelected = formCampaignIds.includes(campaign.id);
-                    return (
-                      <button
-                        key={campaign.id}
-                        type="button"
-                        onClick={() => toggleCampaign(campaign.id)}
-                        className={`flex items-center gap-2.5 p-2 rounded-lg text-left transition-all text-xs ${
-                          isSelected
-                            ? 'bg-primary/10 border border-primary/30 ring-1 ring-primary/20'
-                            : 'hover:bg-muted/50 border border-transparent'
-                        }`}
-                      >
-                        <div className={`h-4 w-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                          isSelected ? 'bg-primary border-primary' : 'border-muted-foreground/30'
-                        }`}>
-                          {isSelected && <CheckCircle2 className="h-3 w-3 text-primary-foreground" />}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-medium">{getCampaignDisplayName(campaign)}</p>
-                          <p className="truncate text-[10px] text-muted-foreground">Campaign: {campaign.campaign_name}{campaign.adset_name ? ` · ${campaign.adset_name}` : ''}</p>
-                        </div>
-                        <Badge variant={isActiveCampaign(campaign) ? 'default' : 'secondary'} className="text-[10px] flex-shrink-0 capitalize">{campaign.status}</Badge>
-                      </button>
-                    );
-                  })}
-                </div>
-            </div>
-            )}
-
-            <div className="flex items-center gap-2 py-1">
-              <ArrowDown className="h-4 w-4 text-primary" />
-              <span className="text-xs font-semibold text-primary uppercase tracking-wider">Then do these actions</span>
-              <ArrowDown className="h-4 w-4 text-primary" />
-            </div>
-
-            {/* Actions */}
-            <div className="space-y-2.5">
-              {/* Send Template */}
-              <div className={`rounded-lg border overflow-hidden transition-colors ${formSendTemplate ? 'border-primary/30 bg-primary/5' : ''}`}>
-                <div className="flex items-center space-x-3 p-2.5">
-                  <Checkbox id="action-template" checked={formSendTemplate} onCheckedChange={(v) => { setFormSendTemplate(!!v); if (!v) setFormSelectedTemplateId(''); }} />
-                  <Label htmlFor="action-template" className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm flex-1">
-                    <MessageSquare className="h-3.5 w-3.5 text-blue-500" />
-                    Send Template Message
-                  </Label>
-                </div>
-                {formSendTemplate && (
-                  <div className="px-3 pb-3">
-                    <Select value={formSelectedTemplateId} onValueChange={setFormSelectedTemplateId}>
-                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select a WhatsApp template…" /></SelectTrigger>
-                      <SelectContent>
-                        {templates.filter(t => t.status === 'APPROVED').map(t => (
-                          <SelectItem key={t.id} value={t.id}>
-                            <span className="truncate">{t.name}</span>
-                            <Badge variant="secondary" className="ml-2 text-[10px]">{t.category}</Badge>
-                          </SelectItem>
-                        ))}
-                        {templates.filter(t => t.status === 'APPROVED').length === 0 && (
-                          <SelectItem value="__none" disabled>No approved templates</SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-
-              {/* Add Tag */}
-              <div className={`rounded-lg border overflow-hidden transition-colors ${formAddTag ? 'border-primary/30 bg-primary/5' : ''}`}>
-                <div className="flex items-center space-x-3 p-2.5">
-                  <Checkbox id="action-tag" checked={formAddTag} onCheckedChange={(v) => { setFormAddTag(!!v); if (!v) setFormSelectedTagId(''); }} />
-                  <Label htmlFor="action-tag" className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm flex-1">
-                    <Tag className="h-3.5 w-3.5 text-amber-500" />
-                    Add Tag to Lead
-                  </Label>
-                </div>
-                {formAddTag && (
-                  <div className="px-3 pb-3">
-                    <Select value={formSelectedTagId} onValueChange={setFormSelectedTagId}>
-                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select a tag…" /></SelectTrigger>
-                      <SelectContent>
-                        {tags.map(t => (
-                          <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                        ))}
-                        {tags.length === 0 && <SelectItem value="__none" disabled>No tags found</SelectItem>}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-
-              {/* Start Workflow */}
-              <div className={`rounded-lg border overflow-hidden transition-colors ${formStartWorkflow ? 'border-primary/30 bg-primary/5' : ''}`}>
-                <div className="flex items-center space-x-3 p-2.5">
-                  <Checkbox id="action-workflow" checked={formStartWorkflow} onCheckedChange={(v) => { setFormStartWorkflow(!!v); if (!v) setFormSelectedWorkflowId(''); }} />
-                  <Label htmlFor="action-workflow" className="flex items-center gap-2 cursor-pointer text-xs sm:text-sm flex-1">
-                    <GitBranch className="h-3.5 w-3.5 text-violet-500" />
-                    Start Automation Workflow
-                  </Label>
-                </div>
-                {formStartWorkflow && (
-                  <div className="px-3 pb-3">
-                    <Select value={formSelectedWorkflowId} onValueChange={setFormSelectedWorkflowId}>
-                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select a workflow…" /></SelectTrigger>
-                      <SelectContent>
-                        {workflows.filter(w => w.status === 'active' || w.status === 'draft').map(w => (
-                          <SelectItem key={w.id} value={w.id}>
-                            {w.name} <Badge variant="secondary" className="ml-2 text-[10px]">{w.status}</Badge>
-                          </SelectItem>
-                        ))}
-                        {workflows.filter(w => w.status === 'active' || w.status === 'draft').length === 0 && (
-                          <SelectItem value="__none" disabled>No workflows found</SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Assignment Mode */}
-            <div className="space-y-3">
-              <Label className="text-sm font-semibold flex items-center gap-2">
-                <UserPlus className="h-4 w-4 text-primary" />
-                Assign Leads To
-              </Label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-                {([
-                  { value: 'none', label: 'No one', icon: Pause },
-                  { value: 'agent', label: 'One Agent', icon: UserPlus },
-                  { value: 'team', label: 'Team Group', icon: Users },
-                  { value: 'roundrobin', label: 'Multi-Agent', icon: Users },
-                ] as const).map(opt => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setFormAssignMode(opt.value)}
-                    className={`flex flex-col items-center gap-1 p-2.5 rounded-lg border-2 transition-all text-xs ${
-                      formAssignMode === opt.value
-                        ? 'border-primary bg-primary/10 text-primary font-semibold'
-                        : 'border-transparent bg-muted/40 text-muted-foreground hover:bg-muted/60'
-                    }`}
-                  >
-                    <opt.icon className="h-4 w-4" />
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-
-              {formAssignMode === 'agent' && (
-                <Select value={formAssignAgent} onValueChange={setFormAssignAgent}>
-                  <SelectTrigger><SelectValue placeholder="Select agent" /></SelectTrigger>
-                  <SelectContent>
-                    {members.map(m => (
-                      <SelectItem key={m.id} value={m.user_id || m.id}>
-                        {m.display_name || m.profile?.full_name || m.profile?.email || 'Agent'}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-
-              {formAssignMode === 'team' && (
-                <Select value={formAssignTeam} onValueChange={setFormAssignTeam}>
-                  <SelectTrigger><SelectValue placeholder="Select team group" /></SelectTrigger>
-                  <SelectContent>
-                    {teams.map(t => (
-                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                    ))}
-                    {teams.length === 0 && <SelectItem value="__none" disabled>Create a team in Settings first</SelectItem>}
-                  </SelectContent>
-                </Select>
-              )}
-
-              {formAssignMode === 'roundrobin' && (
-                <div className="space-y-2">
-                  <p className="text-[11px] text-muted-foreground">
-                    Select 2+ agents — leads rotate equally
-                  </p>
-                  {members.length < 2 && (
-                    <p className="text-[11px] text-warning">This workspace has only {members.length} member. Add agents in Team first.</p>
-                  )}
-                  <div className="grid grid-cols-1 gap-1 max-h-40 overflow-y-auto border rounded-lg p-2 bg-muted/20">
-                    {members.map(m => {
-                      const agentId = m.user_id || m.id;
-                      const isSelected = formRoundRobinAgents.includes(agentId);
-                      const name = m.display_name || m.profile?.full_name || m.profile?.email || 'Agent';
-                      return (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => toggleRoundRobinAgent(agentId)}
-                          className={`flex items-center gap-2.5 p-2 rounded-lg text-left transition-all text-xs ${
-                            isSelected
-                              ? 'bg-primary/10 border border-primary/30'
-                              : 'hover:bg-muted/50 border border-transparent'
-                          }`}
-                        >
-                          <div className={`h-4 w-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${
-                            isSelected ? 'bg-primary border-primary' : 'border-muted-foreground/30'
-                          }`}>
-                            {isSelected && <CheckCircle2 className="h-3 w-3 text-primary-foreground" />}
-                          </div>
-                          <span className="font-medium flex-1">{name}</span>
-                          {isSelected && (
-                            <Badge variant="secondary" className="text-[10px]">
-                              #{formRoundRobinAgents.indexOf(agentId) + 1}
-                            </Badge>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {formRoundRobinAgents.length > 0 && formRoundRobinAgents.length < 2 && (
-                    <p className="text-[11px] text-amber-600">⚠ Select at least 2 agents</p>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
 
-          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => { setShowDialog(false); setEditingAutomation(null); resetForm(); }} className="w-full sm:w-auto">Cancel</Button>
-            <Button onClick={handleSave} disabled={saving} className="gap-2 w-full sm:w-auto">
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-              {saving ? 'Saving...' : editingAutomation ? 'Update Automation' : 'Create Automation'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          {/* Ads → Agents */}
+          <TabsContent value="ads" className="mt-0 space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <Segmented value={adFilter} onChange={v => setAdFilter(v as AdFilter)} options={[
+                { value: 'all', label: `All (${adSources.length})` },
+                { value: 'unrouted', label: `Needs agents (${unroutedCount})` },
+                { value: 'routed', label: `Has agents (${routedCount})` },
+              ]} />
+              <p className="text-[11px] text-muted-foreground">Ads appear here automatically when someone messages you from them.</p>
+            </div>
+            {loading ? <RowSkeletons /> : visibleAds.length === 0 ? (
+              <Empty icon={MessageCircle} title={adSources.length === 0 ? 'No ad chats yet' : 'No ads match'}
+                text={adSources.length === 0 ? 'When someone taps a Click-to-WhatsApp ad and messages you, the ad shows up here so you can pick its agents.' : 'Try another filter or search.'} />
+            ) : visibleAds.map(ad => {
+              const rule = currentRuleByAdId.get(ad.ad_id) || null;
+              const st = adStatus(ad);
+              return (
+                <AdRoutingRow key={ad.id}
+                  title={adSourceLabel(ad)}
+                  subtitle={`Ad ID …${ad.ad_id.slice(-6)}${ad.display_name && ad.headline ? ` · ${ad.headline}` : ''}`}
+                  leads={ad.leads_count}
+                  lastChatAt={ad.last_seen_at}
+                  status={st.status} statusLabel={st.label}
+                  ruleName={rule?.name}
+                  ruleIsGeneral={!!rule && routingSpecificity(rule) === 2}
+                  summary={rule ? describeAssignment(rule.actions, members, teams) : null}
+                  onRoute={() => routeAd(ad.ad_id, rule)}
+                  onRename={name => handleRename(ad, name)}
+                  renameValue={ad.display_name || adSourceLabel(ad)}
+                />
+              );
+            })}
+          </TabsContent>
 
-      {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+          {/* Rules */}
+          <TabsContent value="rules" className="mt-0 space-y-3">
+            <div className="rounded-2xl border border-dashed bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
+              Each new ad lead goes to the <span className="font-semibold text-foreground">first rule that matches</span>, in the order shown: rules for specific ads come first, “every ad” rules last.
+            </div>
+            {loading ? <RowSkeletons /> : orderedRules.length === 0 ? (
+              <Empty icon={Zap} title="No routing rules yet" text="Pick agents for an ad and a rule is saved here." action={<Button onClick={() => openNew()} className="gap-2"><Plus className="h-4 w-4" />New routing</Button>} />
+            ) : orderedRules.map((rule, i) => (
+              <RoutingRuleCard key={rule.id}
+                order={i + 1}
+                name={rule.name}
+                isActive={rule.is_active}
+                sources={ruleSources(rule)}
+                summary={describeAssignment(rule.actions, members, teams)}
+                extras={(rule.actions || []).filter(a => ['send_template', 'add_tag', 'start_workflow'].includes(String(a.type))).map(a => ({ type: String(a.type), label: String(a.label || a.type) }))}
+                leadsHandled={rule.executions_count || 0}
+                lastRunAt={rule.last_executed_at}
+                onEdit={() => openEdit(rule)}
+                onToggle={() => void handleToggle(rule)}
+                onDelete={() => setDeleteTarget(rule)}
+              />
+            ))}
+          </TabsContent>
+
+          {/* Campaigns */}
+          <TabsContent value="campaigns" className="mt-0 space-y-3">
+            {connectedAccounts.length === 0 ? (
+              <Empty icon={Facebook} title="Facebook isn’t connected"
+                text="Connect Facebook to see which campaigns are live or paused. Routing by ad already works without it."
+                action={<Button asChild variant="outline"><Link to="/meta-ads/setup">Connect Facebook</Link></Button>} />
+            ) : (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <Segmented value={campaignFilter} onChange={v => setCampaignFilter(v as 'all' | 'live' | 'off')} options={[
+                    { value: 'all', label: 'All' }, { value: 'live', label: 'Live' }, { value: 'off', label: 'Paused / off' },
+                  ]} />
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-muted-foreground">{latestMetaSync ? `From Meta ${formatDistanceToNow(new Date(latestMetaSync), { addSuffix: true })}` : 'Not synced yet'}</span>
+                    <Button size="sm" variant="outline" onClick={() => void syncFromMeta()} disabled={syncing} className="gap-1.5">
+                      {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}Update from Meta
+                    </Button>
+                  </div>
+                </div>
+                {visibleCampaignAds.length === 0 ? (
+                  <Empty icon={Facebook} title="No campaigns to show" text={campaigns.length === 0 ? 'Use “Update from Meta” to load your campaigns.' : 'Try another filter or search.'} />
+                ) : visibleCampaignAds.slice(0, 60).map(row => {
+                  const rule = ruleForAd(row.id, [row.campaignId]);
+                  return (
+                    <AdRoutingRow key={`${row.campaignId}-${row.id}`}
+                      title={row.name}
+                      subtitle={`Campaign: ${row.campaignName}`}
+                      leads={row.leads}
+                      status={row.status === 'active' ? 'live' : 'paused'}
+                      statusLabel={row.status === 'active' ? 'Live' : (row.status.replace(/_/g, ' ') || 'Off')}
+                      ruleName={rule?.name}
+                      ruleIsGeneral={!!rule && routingSpecificity(rule) === 2}
+                      summary={rule ? describeAssignment(rule.actions, members, teams) : null}
+                      onRoute={() => routeAd(row.id, rule)}
+                    />
+                  );
+                })}
+              </>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      <RoutingRuleDialog
+        open={dialogOpen}
+        onOpenChange={open => { setDialogOpen(open); if (!open) setEditing(null); }}
+        editing={editing}
+        presetAdIds={presetAdIds}
+        adSources={adSources}
+        campaigns={campaigns}
+        connectedAccountId={connectedAccounts[0]?.id || null}
+        members={members}
+        teams={teams}
+        currentRuleByAdId={currentRuleByAdId}
+        onSaved={() => void refetchRules()}
+      />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={open => { if (!open) setDeleteTarget(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Automation?</AlertDialogTitle>
-            <AlertDialogDescription>This action cannot be undone. The automation will be permanently removed.</AlertDialogDescription>
+            <AlertDialogTitle>Delete this routing rule?</AlertDialogTitle>
+            <AlertDialogDescription>
+              New leads from {deleteTarget ? ruleSources(deleteTarget).join(', ') : 'these ads'} will go to your general auto-assign instead. Existing chats keep their agent.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteTarget && handleDelete(deleteTarget)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
+            <AlertDialogAction onClick={() => void handleDelete()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </DashboardLayout>
+  );
+}
+
+function CountPill({ n }: { n: number }) {
+  return <span className="rounded-full bg-muted-foreground/15 px-1.5 text-[10px] font-semibold leading-4">{n}</span>;
+}
+
+function Segmented({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: Array<{ value: string; label: string }> }) {
+  return (
+    <div className="inline-flex flex-wrap gap-1 rounded-xl bg-muted p-1">
+      {options.map(o => (
+        <button key={o.value} type="button" onClick={() => onChange(o.value)}
+          className={cn('rounded-lg px-3 py-1 text-xs font-medium transition-colors', value === o.value ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Empty({ icon: Icon, title, text, action }: { icon: React.ComponentType<{ className?: string }>; title: string; text: string; action?: React.ReactNode }) {
+  return (
+    <div className="flex flex-col items-center rounded-2xl border border-dashed bg-card px-6 py-12 text-center">
+      <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground"><Icon className="h-6 w-6" /></span>
+      <p className="font-semibold">{title}</p>
+      <p className="mt-1 max-w-md text-sm text-muted-foreground">{text}</p>
+      {action && <div className="mt-4">{action}</div>}
+    </div>
+  );
+}
+
+function RowSkeletons() {
+  return (
+    <>
+      {[0, 1, 2].map(i => (
+        <div key={i} className="grid gap-3 rounded-2xl border bg-card p-4 lg:grid-cols-[1.25fr_24px_1fr_auto] lg:items-center">
+          <div className="space-y-2"><Skeleton className="h-4 w-2/3" /><Skeleton className="h-3 w-1/3" /></div>
+          <span />
+          <div className="flex items-center gap-2"><Skeleton className="h-8 w-20 rounded-full" /><Skeleton className="h-4 w-24" /></div>
+          <Skeleton className="h-8 w-28" />
+        </div>
+      ))}
+    </>
   );
 }

@@ -1,6 +1,24 @@
 import { getAdminClient, getUserClient, corsHeaders, json } from '../_shared/supabase.ts';
 
 const GRAPH_API_VERSION = 'v21.0';
+const CAMPAIGN_CONCURRENCY = 6;
+const META_FETCH_TIMEOUT_MS = 12_000;
+
+/** Meta calls must never hang the whole sync. */
+function fetchMeta(url: string) {
+  return fetch(url, { signal: AbortSignal.timeout(META_FETCH_TIMEOUT_MS) });
+}
+
+async function runPool<T>(items: T[], limit: number, worker: (item: T) => Promise<void>) {
+  let next = 0;
+  const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const item = items[next++];
+      await worker(item);
+    }
+  });
+  await Promise.all(runners);
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -72,7 +90,7 @@ Deno.serve(async (req) => {
         // Fetch ad account currency from Meta
         let accountCurrency = 'USD';
         try {
-          const accInfoRes = await fetch(
+          const accInfoRes = await fetchMeta(
             `https://graph.facebook.com/${GRAPH_API_VERSION}/${metaAccountId}?fields=currency&access_token=${accessToken}`
           );
           const accInfo = await accInfoRes.json();
@@ -85,7 +103,7 @@ Deno.serve(async (req) => {
 
         // Fetch campaigns from Meta Graph API
         const campaignsUrl = `https://graph.facebook.com/${GRAPH_API_VERSION}/${metaAccountId}/campaigns?fields=id,name,objective,status,start_time,stop_time&limit=100&access_token=${accessToken}`;
-        const campaignsRes = await fetch(campaignsUrl);
+        const campaignsRes = await fetchMeta(campaignsUrl);
         const campaignsData = await campaignsRes.json();
 
         if (campaignsData.error) {
@@ -102,12 +120,18 @@ Deno.serve(async (req) => {
         const campaigns = campaignsData.data || [];
         console.log(`Found ${campaigns.length} campaigns for ${metaAccountId} (currency: ${accountCurrency})`);
 
-        // Fetch insights for each campaign (last 30 days)
-        for (const campaign of campaigns) {
+        // Fetch insights for each campaign (last 30 days), a few at a time
+        await runPool(campaigns, CAMPAIGN_CONCURRENCY, async (campaign: any) => {
           try {
             const insightsUrl = `https://graph.facebook.com/${GRAPH_API_VERSION}/${campaign.id}/insights?fields=impressions,clicks,spend,ctr,cpc,actions&date_preset=last_30d&access_token=${accessToken}`;
-            const insightsRes = await fetch(insightsUrl);
-            const insightsData = await insightsRes.json();
+            const adsUrl = `https://graph.facebook.com/${GRAPH_API_VERSION}/${campaign.id}/ads?fields=id,name,status,effective_status,adset_id,adset{name}&limit=100&access_token=${accessToken}`;
+            const [insightsData, adsResult] = await Promise.all([
+              fetchMeta(insightsUrl).then(r => r.json()),
+              fetchMeta(adsUrl).then(r => r.json()).catch((adFetchErr) => {
+                console.warn(`Could not fetch ads for campaign ${campaign.id}:`, adFetchErr);
+                return null;
+              }),
+            ]);
 
             const insight = insightsData.data?.[0] || {};
             const actions = insight.actions || [];
@@ -137,10 +161,8 @@ Deno.serve(async (req) => {
             let adsetIds: string[] = [];
             let adSummaries: Array<{ id: string; name: string; status: string; effective_status: string | null; adset_id: string | null; adset_name: string | null }> = [];
             try {
-              const adsUrl = `https://graph.facebook.com/${GRAPH_API_VERSION}/${campaign.id}/ads?fields=id,name,status,effective_status,adset_id,adset{name}&limit=100&access_token=${accessToken}`;
-              const adsRes = await fetch(adsUrl);
-              const adsData = await adsRes.json();
-              if (adsData.data) {
+              const adsData = adsResult;
+              if (adsData?.data) {
                 adIds = adsData.data.map((ad: any) => ad.id);
                 adsetIds = [...new Set(adsData.data.map((ad: any) => ad.adset_id).filter(Boolean))];
                 adSummaries = adsData.data.map((ad: any) => ({
@@ -242,7 +264,7 @@ Deno.serve(async (req) => {
           } catch (insightErr: any) {
             console.error(`Insight fetch error for campaign ${campaign.id}:`, insightErr);
           }
-        }
+        });
 
         // Update last_synced_at on the account
         await supabase

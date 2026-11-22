@@ -47,20 +47,27 @@ export function useMetaAdAccounts() {
     const workspaceId = currentTenant?.id;
     if (!workspaceId) return;
 
+    // A Meta sync updates many campaign rows at once; batch those into one reload.
+    let accountsTimer: number | undefined;
+    let campaignsTimer: number | undefined;
     const refreshAccounts = () => {
-      void queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts', workspaceId] });
+      window.clearTimeout(accountsTimer);
+      accountsTimer = window.setTimeout(() => void queryClient.invalidateQueries({ queryKey: ['meta-ad-accounts', workspaceId] }), 800);
     };
     const refreshCampaigns = () => {
-      void queryClient.invalidateQueries({ queryKey: ['meta-ad-campaigns', workspaceId] });
+      window.clearTimeout(campaignsTimer);
+      campaignsTimer = window.setTimeout(() => void queryClient.invalidateQueries({ queryKey: ['meta-ad-campaigns', workspaceId] }), 800);
     };
 
     const channel = supabase
-      .channel(`meta-ads-live-${workspaceId}`)
+      .channel(`meta-ads-live-${workspaceId}-${Math.random().toString(36).slice(2, 8)}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'smeksh_meta_ad_accounts', filter: `workspace_id=eq.${workspaceId}` }, refreshAccounts)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'smeksh_meta_ad_campaigns', filter: `workspace_id=eq.${workspaceId}` }, refreshCampaigns)
       .subscribe();
 
     return () => {
+      window.clearTimeout(accountsTimer);
+      window.clearTimeout(campaignsTimer);
       void supabase.removeChannel(channel);
     };
   }, [currentTenant?.id, queryClient]);
@@ -84,6 +91,7 @@ export function useMetaAdAccounts() {
     campaignsForFlows,
     isConnected,
     isLoading: accountsQuery.isLoading || campaignsQuery.isLoading,
+    isFetching: accountsQuery.isFetching || campaignsQuery.isFetching,
     error: accountsQuery.error || campaignsQuery.error,
     refetch: async () => {
       await Promise.all([
