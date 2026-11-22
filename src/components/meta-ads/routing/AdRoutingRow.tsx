@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { ArrowDown, ArrowRight, Check, Pencil, UserPlus, X, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,8 @@ export interface AdRoutingRowProps {
   renameValue?: string;
   /** Leads this ad actually brought, per agent. */
   received?: AdLeadBreakdown | null;
+  /** Whether the workspace has a general auto-assign rule switched on. */
+  hasGeneralAutoAssign?: boolean;
 }
 
 const STATUS_DOT: Record<AdRoutingRowProps['status'], string> = {
@@ -37,7 +40,7 @@ const STATUS_DOT: Record<AdRoutingRowProps['status'], string> = {
 
 /** One ad on the left, the agents who get its leads on the right. */
 export function AdRoutingRow(props: AdRoutingRowProps) {
-  const { title, subtitle, leads, lastChatAt, status, statusLabel, ruleName, ruleIsGeneral, summary, onRoute, onRename, renameValue, received } = props;
+  const { title, subtitle, leads, lastChatAt, status, statusLabel, ruleName, ruleIsGeneral, summary, onRoute, onRename, renameValue, received, hasGeneralAutoAssign = true } = props;
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState('');
   const routed = !!summary;
@@ -104,7 +107,11 @@ export function AdRoutingRow(props: AdRoutingRowProps) {
             <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
             <div className="min-w-0">
               <p className="text-sm font-medium">No agents picked</p>
-              <p className="text-[11px] text-muted-foreground">Goes to your general auto-assign</p>
+              <p className="text-[11px] text-muted-foreground">
+                {hasGeneralAutoAssign
+                  ? 'Goes to your general auto-assign'
+                  : <>Leads wait in <Link to="/inbox/unassigned" className="font-medium text-primary hover:underline">Unassigned</Link> — no general auto-assign is set up</>}
+              </p>
             </div>
           </div>
         )}

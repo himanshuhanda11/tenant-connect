@@ -43,7 +43,10 @@ export default function InboxPage() {
   
   const routeConfig = ROUTE_VIEW_MAP[location.pathname] || ROUTE_VIEW_MAP['/inbox'];
   const [view, setView] = useState<InboxView>(routeConfig.view);
-  const [filters, setFilters] = useState<InboxFilters>({});
+  const [filters, setFilters] = useState<InboxFilters>(() =>
+    routeConfig.view === 'mine' ? { assignment: 'mine' }
+      : routeConfig.view === 'unassigned' ? { assignment: 'unassigned' }
+      : (INBOX_VIEW_CONFIG[routeConfig.view]?.filter || {}));
   const [crmFilter, setCrmFilter] = useState<string | undefined>(routeConfig.crmFilter);
   const [selectedId, setSelectedId] = useState<string | null>(conversationId || null);
   const [showContextPanel, setShowContextPanel] = useState(false);

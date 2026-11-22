@@ -15,7 +15,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
-import { useTeamMembers, useTeams } from '@/hooks/useTeam';
+import { useRoutingRules, useTeamMembers, useTeams } from '@/hooks/useTeam';
 import { useWhatsAppAdSources, adSourceLabel, type WhatsAppAdSource } from '@/hooks/useWhatsAppAdSources';
 import { useMetaAdAutomations, type MetaAdAutomation } from '@/hooks/useMetaAdAutomations';
 import { buildAdLeadBreakdown, describeAssignment, isAdLive, LIVE_AD_WINDOW_DAYS } from '@/lib/metaAdRouting';
@@ -46,6 +46,8 @@ export default function MetaAdsAutomations() {
   const { campaigns, connectedAccounts, refetch: refetchMeta } = useMetaAdAccounts();
   const { members } = useTeamMembers();
   const { teams } = useTeams();
+  const { rules: generalRoutingRules } = useRoutingRules();
+  const hasGeneralAutoAssign = generalRoutingRules.some(r => r.is_active);
   const { adSources, isLoading: adsLoading, dataUpdatedAt: adsUpdatedAt, refetch: refetchAds, rename } = useWhatsAppAdSources();
   const { automations, isLoading: rulesLoading, dataUpdatedAt: rulesUpdatedAt, refetch: refetchRules, toggle, remove } = useMetaAdAutomations();
 
@@ -338,6 +340,7 @@ export default function MetaAdsAutomations() {
                   onRename={name => handleRename(ad, name)}
                   renameValue={adTitle(ad)}
                   received={breakdownByAdId.get(ad.ad_id)}
+                  hasGeneralAutoAssign={hasGeneralAutoAssign}
                 />
               );
             })}
@@ -402,6 +405,7 @@ export default function MetaAdsAutomations() {
                       summary={rule ? describeAssignment(rule.actions, members, teams) : null}
                       onRoute={() => routeAd(row.id, rule)}
                       received={breakdownByAdId.get(row.id)}
+                      hasGeneralAutoAssign={hasGeneralAutoAssign}
                     />
                   );
                 })}
@@ -430,7 +434,7 @@ export default function MetaAdsAutomations() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this routing rule?</AlertDialogTitle>
             <AlertDialogDescription>
-              New leads from {deleteTarget ? ruleSources(deleteTarget).join(', ') : 'these ads'} will go to your general auto-assign instead. Existing chats keep their agent.
+              New leads from {deleteTarget ? ruleSources(deleteTarget).join(', ') : 'these ads'} {hasGeneralAutoAssign ? 'will go to your general auto-assign instead' : 'will wait in Unassigned (no general auto-assign is set up)'}. Existing chats keep their agent.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

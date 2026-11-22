@@ -132,7 +132,10 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
   const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState<number | null>(null);
-  const inFlightRef = useRef<Promise<void> | null>(null);
+  // One in-flight fetch per view/filter combination; results of an older
+  // combination are dropped so a quick view switch never shows the wrong list.
+  const inFlightRef = useRef<{ key: string; promise: Promise<void> } | null>(null);
+  const requestSeqRef = useRef(0);
 
   const initialLoadDone = useCallback(() => conversations.length > 0 || !loading, [conversations.length, loading]);
 
@@ -142,8 +145,11 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
       setLoading(false);
       return;
     }
-    // De-dupe overlapping fetches (polling + realtime can stack up)
-    if (inFlightRef.current) return inFlightRef.current;
+    // De-dupe overlapping fetches for the SAME view (polling + realtime can stack up)
+    const requestKey = cacheKey || '';
+    if (inFlightRef.current && inFlightRef.current.key === requestKey) return inFlightRef.current.promise;
+    const seq = ++requestSeqRef.current;
+    const isStale = () => seq !== requestSeqRef.current;
 
     const run = (async () => {
     // Only show loading spinner on initial load, not background refreshes
@@ -262,6 +268,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
       ]);
 
       if (queryError) throw queryError;
+      if (isStale()) return;
       setTotalCount(exactCount ?? null);
 
       let mapped = (data || []).map(mapConversation);
@@ -294,17 +301,18 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
         );
       }
 
-      setConversations(mapped);
       if (cacheKey) inboxCache.set(cacheKey, { data: mapped, ts: Date.now() });
+      if (isStale()) return;
+      setConversations(mapped);
     } catch (err) {
       console.error('Error fetching conversations:', err);
       setError(err instanceof Error ? err.message : 'Failed to load conversations');
     } finally {
-      setLoading(false);
+      if (!isStale()) setLoading(false);
     }
     })();
-    inFlightRef.current = run;
-    try { await run; } finally { inFlightRef.current = null; }
+    inFlightRef.current = { key: requestKey, promise: run };
+    try { await run; } finally { if (inFlightRef.current?.promise === run) inFlightRef.current = null; }
   }, [currentTenant?.id, user?.id, view, filters, crmFilter, cacheKey]);
 
   useEffect(() => {
