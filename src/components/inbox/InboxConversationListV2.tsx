@@ -21,8 +21,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
-import { format, isToday, isYesterday, differenceInMinutes, differenceInHours, differenceInDays } from 'date-fns';
-import { InboxConversation, InboxView, InboxFilters } from '@/types/inbox';
+import { format, differenceInMinutes, differenceInHours, differenceInDays } from 'date-fns';
+import { InboxConversation, InboxView, InboxFilters, inboxSortOrder, type InboxSort } from '@/types/inbox';
+import { InboxTimeFilter, DEFAULT_INBOX_TIME_FILTER, type InboxTimeFilterValue } from './InboxTimeFilter';
+import { useWorkspaceTimezone } from '@/hooks/useWorkspaceTimezone';
+import { useAgentDisplayNames } from '@/hooks/useAgentDisplayNames';
+import { formatInZone, startOfZonedDay } from '@/lib/workspaceTime';
 import { CRMStatusBadge } from './CRMStatusBadge';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -41,17 +45,12 @@ interface InboxConversationListV2Props {
   unreadNewCount?: number;
   totalCount?: number;
   onClearNotifications?: () => void;
+  timeFilter?: InboxTimeFilterValue;
+  onTimeFilterChange?: (v: InboxTimeFilterValue) => void;
 }
 
-type DateFilter = 'all' | 'today' | 'yesterday' | 'last_7_days';
 type StatusFilter = 'all' | 'new' | 'assigned' | 'contacted' | 'follow_up_required' | 'call_scheduled' | 'documents_pending' | 'qualified' | 'converted' | 'not_interested' | 'junk';
 
-const DATE_FILTER_LABELS: Record<DateFilter, string> = {
-  all: 'All',
-  today: 'Today',
-  yesterday: 'Yesterday',
-  last_7_days: 'Last 7d',
-};
 
 // Short relative time like "Now", "5m", "2h", "3d"
 const formatShortTime = (dateStr?: string) => {
@@ -68,16 +67,21 @@ const formatShortTime = (dateStr?: string) => {
   return format(date, 'MMM d');
 };
 
-const groupByDate = (conversations: InboxConversation[]) => {
+// Group by Today / Yesterday / Earlier in the workspace time zone, using the sort's time.
+const groupByDate = (conversations: InboxConversation[], timeZone: string, sort?: InboxSort) => {
   const groups: { label: string; conversations: InboxConversation[] }[] = [];
   const today: InboxConversation[] = [];
   const yesterday: InboxConversation[] = [];
   const older: InboxConversation[] = [];
+  const now = new Date();
+  const todayStart = startOfZonedDay(now, timeZone).getTime();
+  const yesterdayStart = startOfZonedDay(now, timeZone, -1).getTime();
+  const { column } = inboxSortOrder(sort);
 
   conversations.forEach(c => {
-    const date = c.last_message_at ? new Date(c.last_message_at) : new Date(c.created_at);
-    if (isToday(date)) today.push(c);
-    else if (isYesterday(date)) yesterday.push(c);
+    const t = new Date((column === 'created_at' ? c.created_at : c.last_message_at) || c.created_at).getTime();
+    if (t >= todayStart) today.push(c);
+    else if (t >= yesterdayStart) yesterday.push(c);
     else older.push(c);
   });
 
@@ -102,9 +106,12 @@ export function InboxConversationListV2({
   unreadNewCount = 0,
   totalCount,
   onClearNotifications,
+  timeFilter = DEFAULT_INBOX_TIME_FILTER,
+  onTimeFilterChange,
 }: InboxConversationListV2Props) {
+  const timeZone = useWorkspaceTimezone();
+  const agentName = useAgentDisplayNames();
   const [searchQuery, setSearchQuery] = useState('');
-  const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [assignmentFilter, setAssignmentFilter] = useState<'all' | 'unassigned' | 'assigned'>('all');
 
@@ -120,20 +127,6 @@ export function InboxConversationListV2({
       );
     }
 
-    if (dateFilter !== 'all') {
-      const now = new Date();
-      result = result.filter(c => {
-        const date = c.last_message_at ? new Date(c.last_message_at) : new Date(c.created_at);
-        if (dateFilter === 'today') return isToday(date);
-        if (dateFilter === 'yesterday') return isYesterday(date);
-        if (dateFilter === 'last_7_days') {
-          const diff = now.getTime() - date.getTime();
-          return diff <= 7 * 24 * 60 * 60 * 1000;
-        }
-        return true;
-      });
-    }
-
     if (statusFilter !== 'all') {
       result = result.filter(c => c.crm_status === statusFilter);
     }
@@ -145,13 +138,13 @@ export function InboxConversationListV2({
     }
 
     return result;
-  }, [conversations, searchQuery, dateFilter, statusFilter, assignmentFilter]);
+  }, [conversations, searchQuery, statusFilter, assignmentFilter]);
 
   const PAGE_SIZE = 25;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   // Reset visible count when filters change
-  const filterKey = `${searchQuery}-${dateFilter}-${statusFilter}-${assignmentFilter}`;
+  const filterKey = `${searchQuery}-${JSON.stringify(timeFilter)}-${statusFilter}-${assignmentFilter}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (filterKey !== prevFilterKey) {
     setVisibleCount(PAGE_SIZE);
@@ -161,7 +154,7 @@ export function InboxConversationListV2({
   const paginatedConversations = useMemo(() => filteredConversations.slice(0, visibleCount), [filteredConversations, visibleCount]);
   const hasMore = filteredConversations.length > visibleCount;
 
-  const groups = useMemo(() => groupByDate(paginatedConversations), [paginatedConversations]);
+  const groups = useMemo(() => groupByDate(paginatedConversations, timeZone, timeFilter.sort), [paginatedConversations, timeZone, timeFilter.sort]);
   const totalUnread = conversations.reduce((sum, c) => sum + c.unread_count, 0);
 
   return (
@@ -196,7 +189,7 @@ export function InboxConversationListV2({
         </div>
         <p className="text-xs text-muted-foreground mb-3">
           {(() => {
-            const localFiltered = dateFilter !== 'all' || statusFilter !== 'all' || assignmentFilter !== 'all' || !!searchQuery;
+            const localFiltered = statusFilter !== 'all' || assignmentFilter !== 'all' || !!searchQuery;
             const display = !localFiltered && typeof totalCount === 'number' ? totalCount : filteredConversations.length;
             return `${display} conversations`;
           })()}{hasMore ? ` · Showing ${visibleCount}` : ''}{totalUnread > 0 && ` · ${totalUnread} unread`}
@@ -217,20 +210,11 @@ export function InboxConversationListV2({
       {/* Filter Chips */}
       <div className="flex-shrink-0 border-b border-border/30">
         <div className="flex items-center gap-1.5 px-3 py-2.5 flex-wrap">
-          {Object.entries(DATE_FILTER_LABELS).map(([key, label]) => (
-            <button
-              key={key}
-              onClick={() => setDateFilter(key as DateFilter)}
-              className={cn(
-                "px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0",
-                dateFilter === key
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border border-border/40"
-              )}
-            >
-              {label}
-            </button>
-          ))}
+          <InboxTimeFilter
+            value={timeFilter}
+            onChange={(v) => onTimeFilterChange?.(v)}
+            timeZone={timeZone}
+          />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className={cn(
@@ -347,6 +331,8 @@ export function InboxConversationListV2({
                           onSelect={onSelect}
                           currentUserId={currentUserId}
                           isMobile={isMobile}
+                          timeZone={timeZone}
+                          agentName={agentName}
                         />
                       </motion.div>
                     ))}
@@ -382,12 +368,16 @@ function ConversationCard({
   onSelect,
   currentUserId,
   isMobile,
+  timeZone,
+  agentName,
 }: {
   conversation: InboxConversation;
   isSelected: boolean;
   onSelect: (id: string) => void;
   currentUserId?: string;
   isMobile?: boolean;
+  timeZone: string;
+  agentName: (userId?: string | null, fallback?: string | null) => string | null;
 }) {
   const hasUnread = conversation.unread_count > 0;
   const initials = (() => {
@@ -401,14 +391,15 @@ function ConversationCard({
   let assignLabel: string | undefined;
   if (isMyAssignment && conversation.assigner?.full_name) {
     assignLabel = `Assigned by ${conversation.assigner.full_name}`;
-  } else if (!isMyAssignment && conversation.assigned_agent?.full_name) {
-    assignLabel = `Assigned to ${conversation.assigned_agent.full_name}`;
+  } else if (!isMyAssignment && conversation.assigned_to) {
+    const n = agentName(conversation.assigned_to, conversation.assigned_agent?.full_name);
+    if (n) assignLabel = `Assigned to ${n}`;
   }
 
   // Agent name for the badge
   const agentDisplayName = conversation.assigned_to === currentUserId
     ? 'You'
-    : conversation.assigned_agent?.full_name || null;
+    : agentName(conversation.assigned_to, conversation.assigned_agent?.full_name);
 
   return (
     <div
@@ -473,6 +464,10 @@ function ConversationCard({
               {conversation.last_message_preview}
             </p>
           )}
+
+          <p className="mt-0.5 truncate text-[10.5px] text-muted-foreground/80 tabular-nums">
+            Received {formatInZone(conversation.first_message_at || conversation.created_at, timeZone, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}
+          </p>
 
           {/* Row 3: CRM Status + Assignment + Agent */}
           <div className="flex items-center gap-1.5 mt-1.5 min-w-0">

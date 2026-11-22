@@ -9,6 +9,7 @@ import { MentionTextarea } from './MentionTextarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LeadQualificationPanel } from './LeadQualificationPanel';
 import { InboxCRMOverview } from './InboxCRMOverview';
+import { ConversationTimesCard } from './ConversationTimesCard';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import {
@@ -228,6 +229,9 @@ export function InboxContextPanel({
           <ScrollArea className="flex-1 min-h-0">
             {/* ===== CRM OVERVIEW ===== */}
             <TabsContent value="overview" className="m-0">
+              <div className="px-4 pt-4">
+                <ConversationTimesCard conversation={conversation} />
+              </div>
               <InboxCRMOverview conversation={conversation} />
             </TabsContent>
 

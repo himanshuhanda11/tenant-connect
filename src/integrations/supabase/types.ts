@@ -3258,6 +3258,7 @@ export type Database = {
           country_interest: string | null
           created_at: string
           crm_status: string | null
+          first_message_at: string | null
           first_response_at: string | null
           followup_notes: string | null
           id: string
@@ -3265,6 +3266,7 @@ export type Database = {
           intervened_by: string | null
           is_intervened: boolean | null
           junk_reason: string | null
+          last_agent_reply_at: string | null
           last_contacted_at: string | null
           last_inbound_at: string | null
           last_message_at: string | null
@@ -3297,6 +3299,7 @@ export type Database = {
           country_interest?: string | null
           created_at?: string
           crm_status?: string | null
+          first_message_at?: string | null
           first_response_at?: string | null
           followup_notes?: string | null
           id?: string
@@ -3304,6 +3307,7 @@ export type Database = {
           intervened_by?: string | null
           is_intervened?: boolean | null
           junk_reason?: string | null
+          last_agent_reply_at?: string | null
           last_contacted_at?: string | null
           last_inbound_at?: string | null
           last_message_at?: string | null
@@ -3336,6 +3340,7 @@ export type Database = {
           country_interest?: string | null
           created_at?: string
           crm_status?: string | null
+          first_message_at?: string | null
           first_response_at?: string | null
           followup_notes?: string | null
           id?: string
@@ -3343,6 +3348,7 @@ export type Database = {
           intervened_by?: string | null
           is_intervened?: boolean | null
           junk_reason?: string | null
+          last_agent_reply_at?: string | null
           last_contacted_at?: string | null
           last_inbound_at?: string | null
           last_message_at?: string | null

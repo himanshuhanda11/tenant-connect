@@ -16,6 +16,8 @@ import {
 } from '@/hooks/useInbox';
 import { useInboxNotification } from '@/hooks/useInboxNotification';
 import { InboxView, InboxFilters, INBOX_VIEW_CONFIG, ConversationStatus } from '@/types/inbox';
+import { DEFAULT_INBOX_TIME_FILTER, resolveInboxTimeFilter, type InboxTimeFilterValue } from '@/components/inbox/InboxTimeFilter';
+import { useWorkspaceTimezone } from '@/hooks/useWorkspaceTimezone';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ArrowLeft, Info, X } from 'lucide-react';
@@ -48,6 +50,15 @@ export default function InboxPage() {
       : routeConfig.view === 'unassigned' ? { assignment: 'unassigned' }
       : (INBOX_VIEW_CONFIG[routeConfig.view]?.filter || {}));
   const [crmFilter, setCrmFilter] = useState<string | undefined>(routeConfig.crmFilter);
+  // Date range + sort survive switching inbox views; resolved in the workspace time zone.
+  const timeZone = useWorkspaceTimezone();
+  const [timeFilter, setTimeFilter] = useState<InboxTimeFilterValue>(DEFAULT_INBOX_TIME_FILTER);
+  const [timeTick, setTimeTick] = useState(0);
+  useEffect(() => {
+    if (timeFilter.preset !== 'last_24h') return;
+    const id = window.setInterval(() => setTimeTick((t) => t + 1), 5 * 60_000);
+    return () => window.clearInterval(id);
+  }, [timeFilter.preset]);
   const [selectedId, setSelectedId] = useState<string | null>(conversationId || null);
   const [showContextPanel, setShowContextPanel] = useState(false);
 
@@ -140,7 +151,12 @@ export default function InboxPage() {
   }, [location.pathname]);
 
   // Hooks
-  const { conversations, totalCount, loading: loadingConversations, refetch } = useInboxConversations(view, filters, crmFilter);
+  const effectiveFilters = useMemo<InboxFilters>(
+    () => ({ ...filters, ...resolveInboxTimeFilter(timeFilter, timeZone) }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filters, timeFilter, timeZone, timeTick],
+  );
+  const { conversations, totalCount, loading: loadingConversations, refetch } = useInboxConversations(view, effectiveFilters, crmFilter);
 
   // Apply CRM filter client-side for follow_up / junk views
   const filteredConversations = useMemo(() => {
@@ -297,6 +313,8 @@ export default function InboxPage() {
                     unreadNewCount={unreadNewCount}
                     totalCount={totalCount ?? undefined}
                     onClearNotifications={clearNotifications}
+                    timeFilter={timeFilter}
+                    onTimeFilterChange={setTimeFilter}
                   />
                 </motion.div>
               ) : showContextPanel ? (
@@ -375,6 +393,8 @@ export default function InboxPage() {
               unreadNewCount={unreadNewCount}
               totalCount={totalCount ?? undefined}
               onClearNotifications={clearNotifications}
+              timeFilter={timeFilter}
+              onTimeFilterChange={setTimeFilter}
             />
           </div>
 

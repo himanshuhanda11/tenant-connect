@@ -10,7 +10,8 @@ import {
   InboxView,
   ConversationEvent,
   InternalNote,
-  ConversationStatus
+  ConversationStatus,
+  inboxSortOrder,
 } from '@/types/inbox';
 
 // Map DB row to InboxConversation type
@@ -32,6 +33,8 @@ function mapConversation(row: any): InboxConversation {
     last_message_preview: row.last_message_preview,
     last_message_id: row.last_message_id,
     last_inbound_at: row.last_inbound_at,
+    first_message_at: row.first_message_at,
+    last_agent_reply_at: row.last_agent_reply_at,
     priority: row.priority || 'normal',
     is_intervened: row.is_intervened || false,
     intervened_by: row.intervened_by,
@@ -136,6 +139,8 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
   // combination are dropped so a quick view switch never shows the wrong list.
   const inFlightRef = useRef<{ key: string; promise: Promise<void> } | null>(null);
   const requestSeqRef = useRef(0);
+  const sortRef = useRef(filters.sort);
+  sortRef.current = filters.sort;
 
   const initialLoadDone = useCallback(() => conversations.length > 0 || !loading, [conversations.length, loading]);
 
@@ -177,6 +182,8 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
         roleCache.set(roleKey, roleEntry);
       }
       const isAgent = roleEntry.role === 'agent';
+      const sortOrder = inboxSortOrder(filters.sort);
+      const dateField = filters.dateField || 'created_at';
 
       let query = supabase
         .from('conversations')
@@ -188,7 +195,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
           phone_number:phone_numbers(id, status, verified_name)
         `)
         .eq('tenant_id', currentTenant.id)
-        .order('last_message_at', { ascending: false, nullsFirst: false })
+        .order(sortOrder.column, { ascending: sortOrder.ascending, nullsFirst: false })
         .limit(300);
 
       // Agent visibility: only see assigned/claimed to self,
@@ -219,6 +226,9 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
       if (filters.hasUnread) {
         query = query.gt('unread_count', 0);
       }
+      // Date range (exact UTC instants computed in the workspace timezone)
+      if (filters.dateFrom) query = query.gte(dateField, filters.dateFrom);
+      if (filters.dateTo) query = query.lt(dateField, filters.dateTo);
       // Server-side CRM filter (junk/spam, follow_up, open) so the 300-row cap
       // doesn't accidentally hide older items in narrow tabs.
       if (crmFilter === 'junk') {
@@ -254,6 +264,8 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
       }
       if (filters.priority && filters.priority !== 'all') countQuery = countQuery.eq('priority', filters.priority);
       if (filters.hasUnread) countQuery = countQuery.gt('unread_count', 0);
+      if (filters.dateFrom) countQuery = countQuery.gte(dateField, filters.dateFrom);
+      if (filters.dateTo) countQuery = countQuery.lt(dateField, filters.dateTo);
       if (crmFilter === 'junk') {
         countQuery = countQuery.in('crm_status', ['junk', 'not_interested']);
       } else if (crmFilter === 'follow_up') {
@@ -374,6 +386,9 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
                 unread_count: updated.unread_count ?? existing.unread_count,
                 last_message_at: updated.last_message_at || existing.last_message_at,
                 last_message_preview: updated.last_message_preview || existing.last_message_preview,
+                last_inbound_at: updated.last_inbound_at || existing.last_inbound_at,
+                first_message_at: updated.first_message_at || existing.first_message_at,
+                last_agent_reply_at: updated.last_agent_reply_at || existing.last_agent_reply_at,
                 assigned_to: updated.assigned_to,
                 assigned_at: updated.assigned_at || existing.assigned_at,
                 claimed_by: updated.claimed_by,
@@ -383,8 +398,12 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
               };
               const newList = [...prev];
               newList[idx] = merged;
-              // Re-sort by last_message_at
-              newList.sort((a, b) => new Date(b.last_message_at || 0).getTime() - new Date(a.last_message_at || 0).getTime());
+              // Re-sort using the chosen sort order
+              const { column, ascending } = inboxSortOrder(sortRef.current);
+              newList.sort((a, b) => {
+                const diff = new Date(a[column] || 0).getTime() - new Date(b[column] || 0).getTime();
+                return ascending ? diff : -diff;
+              });
               return newList;
             });
           } else if (payload.eventType === 'INSERT') {

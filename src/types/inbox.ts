@@ -65,6 +65,10 @@ export interface InboxConversation {
   last_message_preview?: string;
   last_message_id?: string;
   last_inbound_at?: string;
+  /** First message in the chat (either side) */
+  first_message_at?: string;
+  /** Latest reply by a person (automatic replies excluded) */
+  last_agent_reply_at?: string;
   priority?: Priority;
   is_intervened: boolean;
   intervened_by?: string;
@@ -213,6 +217,34 @@ export interface InboxFilters {
   tags?: string[];
   source?: string;
   search?: string;
+  /** Exact UTC range (ISO) computed in the workspace timezone */
+  dateFrom?: string;
+  dateTo?: string;
+  /** Which time the date range applies to */
+  dateField?: InboxDateField;
+  sort?: InboxSort;
+}
+
+export type InboxDateField = 'created_at' | 'last_inbound_at' | 'last_message_at';
+export type InboxSort = 'latest_activity' | 'newest_received' | 'oldest_received';
+
+export const INBOX_DATE_FIELD_LABELS: Record<InboxDateField, string> = {
+  created_at: 'Received (new chat)',
+  last_inbound_at: 'Last customer message',
+  last_message_at: 'Latest activity',
+};
+
+export const INBOX_SORT_LABELS: Record<InboxSort, string> = {
+  latest_activity: 'Latest activity',
+  newest_received: 'Newest received',
+  oldest_received: 'Oldest received',
+};
+
+/** Column + direction used to order the inbox for a sort option. */
+export function inboxSortOrder(sort: InboxSort | undefined): { column: 'last_message_at' | 'created_at'; ascending: boolean } {
+  if (sort === 'newest_received') return { column: 'created_at', ascending: false };
+  if (sort === 'oldest_received') return { column: 'created_at', ascending: true };
+  return { column: 'last_message_at', ascending: false };
 }
 
 export type InboxView = 'all' | 'mine' | 'assigned_pending' | 'unassigned' | 'sla_risk' | 'vip' | 'closed';
