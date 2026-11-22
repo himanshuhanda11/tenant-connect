@@ -10,7 +10,7 @@ import { adSourceLabel, type WhatsAppAdSource } from '@/hooks/useWhatsAppAdSourc
 import type { MetaAdAutomation } from '@/hooks/useMetaAdAutomations';
 import type { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
 import type { TeamMember } from '@/types/team';
-import { assignableMembers, initials, memberName } from '@/lib/metaAdRouting';
+import { assignableMembers, describeAssignment, initials, memberName } from '@/lib/metaAdRouting';
 import { getTargetAdIds } from '@/lib/metaAdTargeting';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -124,6 +124,13 @@ export function RoutingRuleDialog({
   });
   const knownAdIds = new Set(adSources.map(a => a.ad_id));
   const hiddenSelected = adIds.filter(id => !knownAdIds.has(id)).length;
+
+  const nowGoesTo = (rule: MetaAdAutomation) => {
+    const summary = describeAssignment(rule.actions, members, teams);
+    if (summary.mode === 'team') return summary.teamName;
+    const names = summary.agents.map(a => a.name);
+    return names.length > 2 ? `${names.slice(0, 2).join(', ')} +${names.length - 2}` : names.join(', ');
+  };
 
   const toggle = (list: string[], value: string) => (list.includes(value) ? list.filter(v => v !== value) : [...list, value]);
 
@@ -246,7 +253,7 @@ export function RoutingRuleDialog({
                         <p className="truncate text-sm font-medium">{adSourceLabel(ad)}</p>
                         <p className="truncate text-[11px] text-muted-foreground">
                           Ad …{ad.ad_id.slice(-6)} · {ad.leads_count.toLocaleString()} leads
-                          {takenByOther ? ` · now goes to “${current.name}”` : ''}
+                          {takenByOther ? ` · now goes to ${nowGoesTo(current)}` : ''}
                         </p>
                       </div>
                     </label>

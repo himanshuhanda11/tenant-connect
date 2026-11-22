@@ -210,7 +210,7 @@ export default function MetaAdsAutomations() {
   };
 
   const ruleSources = (rule: MetaAdAutomation) => {
-    const ads = getTargetAdIds(rule.trigger_conditions).map(id => adLabelById.get(id) || `Ad …${id.slice(-6)}`);
+    const ads = getTargetAdIds(rule.trigger_conditions).map(id => adLabelById.has(id) ? `${adLabelById.get(id)} · …${id.slice(-6)}` : `Ad …${id.slice(-6)}`);
     const camps = (rule.trigger_campaign_ids || []).map(id => campaigns.find(c => c.id === id)?.campaign_name || 'Campaign');
     const all = [...ads, ...camps];
     return all.length ? all : ['Every ad'];

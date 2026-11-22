@@ -45,7 +45,7 @@ export function AgentStack({ summary, className, showAllNames }: AgentStackProps
       <div className="min-w-0">
         <p className={cn('text-sm font-medium', !showAllNames && 'truncate')}>{nameText}</p>
         <p className="text-[11px] text-muted-foreground">
-          {ASSIGN_MODE_LABEL[summary.mode]}{summary.mode === 'turns' ? ` · ${agents.length} agents share equally` : ''}
+          {ASSIGN_MODE_LABEL[summary.mode]}{summary.mode === 'turns' ? ` · ${agents.length} agents, equal share` : ''}
         </p>
       </div>
     </div>

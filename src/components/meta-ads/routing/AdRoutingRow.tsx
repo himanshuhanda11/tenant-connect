@@ -92,10 +92,8 @@ export function AdRoutingRow(props: AdRoutingRowProps) {
         {summary ? (
           <>
             <AgentStack summary={summary} />
-            {ruleName && (
-              <p className="mt-1 truncate text-[10px] text-muted-foreground" title={ruleName}>
-                {ruleIsGeneral ? 'From your “every ad” rule · ' : 'Rule: '}{ruleName}
-              </p>
+            {ruleIsGeneral && ruleName && (
+              <p className="mt-1 truncate text-[10px] text-muted-foreground" title={ruleName}>From your “every ad” rule: {ruleName}</p>
             )}
           </>
         ) : (
