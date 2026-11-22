@@ -33,8 +33,11 @@ describe('inbox date filter', () => {
   });
 
   it('summary names exactly what is counted', () => {
-    expect(describeInboxCount(75, { preset: 'today', sort: 'newest_received' }, 'Asia/Dubai')).toBe('75 new chats today');
-    expect(describeInboxCount(212, { preset: 'yesterday', sort: 'latest_activity' }, 'Asia/Dubai')).toBe('212 chats with messages yesterday');
-    expect(describeInboxCount(29479, { preset: 'all', sort: 'latest_activity' }, 'Asia/Dubai')).toBe('29,479 chats');
+    expect(describeInboxCount(77, { preset: 'today', sort: 'newest_received' }, 'Asia/Dubai'))
+      .toEqual({ headline: '77 chats', details: ['received today'] });
+    expect(describeInboxCount(37, { preset: 'today', sort: 'latest_activity' }, 'Asia/Dubai', { status: 'New' }))
+      .toEqual({ headline: '37 chats', details: ['last message today', 'status New'] });
+    expect(describeInboxCount(29479, { preset: 'all', sort: 'latest_activity' }, 'Asia/Dubai'))
+      .toEqual({ headline: '29,479 chats', details: [] });
   });
 });

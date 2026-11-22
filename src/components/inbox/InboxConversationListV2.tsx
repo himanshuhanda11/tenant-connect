@@ -286,8 +286,20 @@ export function InboxConversationListV2({
           <p className="min-w-0 text-xs text-muted-foreground" aria-live="polite">
             {loading && typeof totalCount !== 'number' ? 'Counting…' : (
               <>
-                <span className="font-semibold text-foreground">{describeInboxCount(total, timeFilter, timeZone)}</span>
-                {total > 0 && <span> · showing {shown.toLocaleString('en-US')}</span>}
+                {(() => {
+                  const d = describeInboxCount(total, timeFilter, timeZone, {
+                    status: statusFilter !== 'all' ? STATUS_LABELS[statusFilter] : undefined,
+                    owner: assignmentFilter !== 'all' ? OWNER_LABELS[assignmentFilter] : undefined,
+                    search: listFilters.search.trim() || undefined,
+                  });
+                  return (
+                    <>
+                      <span className="font-semibold text-foreground">{d.headline}</span>
+                      {d.details.map((x) => <span key={x}> · {x}</span>)}
+                      {total > shown && <span className="block text-[10.5px]">Showing {shown.toLocaleString('en-US')} · tap Load more below for the rest</span>}
+                    </>
+                  );
+                })()}
               </>
             )}
           </p>

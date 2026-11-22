@@ -38,23 +38,37 @@ export function resolveInboxTimeFilter(v: InboxTimeFilterValue, timeZone: string
     : { ...base, dateFrom: r.start.toISOString() };
 }
 
-/** Plain-language summary, e.g. "75 new chats today". */
-export function describeInboxCount(count: number, v: InboxTimeFilterValue, timeZone: string): string {
-  const n = count.toLocaleString('en-US');
+/**
+ * Plain-language summary of what the list is counting, e.g.
+ * "77 chats · received today" or "37 chats · last message today · status New".
+ */
+export function describeInboxCount(
+  count: number,
+  v: InboxTimeFilterValue,
+  timeZone: string,
+  extra: { status?: string; owner?: string; search?: string } = {},
+): { headline: string; details: string[] } {
+  const headline = `${count.toLocaleString('en-US')} ${count === 1 ? 'chat' : 'chats'}`;
   const byReceived = inboxSortOrder(v.sort).column === 'created_at';
-  const one = count === 1;
-  if (v.preset === 'all') return `${n} ${one ? 'chat' : 'chats'}`;
-  const noun = byReceived ? (one ? 'new chat' : 'new chats') : (one ? 'chat with messages' : 'chats with messages');
+  const details: string[] = [];
   const when: Record<Exclude<DatePreset, 'custom'>, string> = {
     today: 'today', yesterday: 'yesterday', last_24h: 'in the last 24 hours',
     last_7d: 'in the last 7 days', last_30d: 'in the last 30 days',
   };
-  if (v.preset === 'custom') {
-    if (!v.custom) return `${n} ${noun}`;
-    const f = (d: Date) => formatInZone(d, timeZone, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
-    return `${n} ${noun} · ${f(v.custom.start)} – ${f(v.custom.end)}`;
+  if (v.preset !== 'all') {
+    let period = '';
+    if (v.preset === 'custom') {
+      if (v.custom) {
+        const f = (d: Date) => formatInZone(d, timeZone, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+        period = `${f(v.custom.start)} – ${f(v.custom.end)}`;
+      }
+    } else period = when[v.preset];
+    if (period) details.push(byReceived ? `received ${period}` : `last message ${period}`);
   }
-  return `${n} ${noun} ${when[v.preset]}`;
+  if (extra.status) details.push(`status ${extra.status}`);
+  if (extra.owner) details.push(extra.owner.toLowerCase());
+  if (extra.search) details.push(`matching "${extra.search}"`);
+  return { headline, details };
 }
 
 export const SORT_OPTIONS: { value: InboxSort; label: string; hint: string }[] = [
