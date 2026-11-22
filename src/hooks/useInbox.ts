@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWorkspaceTimezone } from '@/hooks/useWorkspaceTimezone';
+import { startOfZonedDay } from '@/lib/workspaceTime';
 import { toast } from 'sonner';
 import { 
   InboxConversation, 
@@ -126,19 +128,22 @@ function inboxCacheKey(tenantId: string, userId: string, view: InboxView, filter
   return `${tenantId}:${userId}:${view}:${JSON.stringify(filters)}`;
 }
 
-export function useInboxConversations(view: InboxView, filters: InboxFilters, crmFilter?: string) {
+export function useInboxConversations(view: InboxView, filters: InboxFilters, crmFilter?: string, limit = 300) {
   const { currentTenant } = useTenant();
   const { user } = useAuth();
-  const cacheKey = currentTenant?.id && user?.id ? `${inboxCacheKey(currentTenant.id, user.id, view, filters)}:${crmFilter || ''}` : null;
+  const timeZone = useWorkspaceTimezone();
+  const cacheKey = currentTenant?.id && user?.id ? `${inboxCacheKey(currentTenant.id, user.id, view, filters)}:${crmFilter || ''}:${limit}` : null;
   const cached = cacheKey ? inboxCache.get(cacheKey) : undefined;
   const [conversations, setConversations] = useState<InboxConversation[]>(cached?.data ?? []);
   const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [dayCounts, setDayCounts] = useState<{ today: number | null; yesterday: number | null }>({ today: null, yesterday: null });
   // One in-flight fetch per view/filter combination; results of an older
   // combination are dropped so a quick view switch never shows the wrong list.
   const inFlightRef = useRef<{ key: string; promise: Promise<void> } | null>(null);
   const requestSeqRef = useRef(0);
+  const lastBaseKeyRef = useRef<string | null>(null);
   const sortRef = useRef(filters.sort);
   sortRef.current = filters.sort;
 
@@ -185,7 +190,61 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
       const sortOrder = inboxSortOrder(filters.sort);
       const dateField = filters.dateField || 'created_at';
 
-      let query = supabase
+      // Every list filter is applied in the database so counts are exact.
+      let searchContactIds: string[] | null = null;
+      const search = (filters.search || '').replace(/[,()*%\\]/g, ' ').trim();
+      if (search) {
+        const { data: found } = await supabase
+          .from('contacts')
+          .select('id')
+          .eq('tenant_id', currentTenant.id)
+          .or(`name.ilike.%${search}%,first_name.ilike.%${search}%,wa_id.ilike.%${search.replace(/\s+/g, '')}%`)
+          .limit(500);
+        searchContactIds = (found || []).map((r: { id: string }) => r.id);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const applyFilters = (q: any) => {
+        q = q.eq('tenant_id', currentTenant.id);
+        // Agent visibility: only see assigned/claimed to self,
+        // plus unassigned leads created AFTER the agent was added
+        if (isAgent && user?.id) {
+          const agentCreatedAt = roleEntry!.agentCreatedAt || new Date().toISOString();
+          q = q.or(`assigned_to.eq.${user.id},claimed_by.eq.${user.id},and(assigned_to.is.null,created_at.gte.${agentCreatedAt})`);
+        }
+        if (filters.status && filters.status !== 'all') {
+          q = q.eq('status', filters.status === 'pending' ? 'open' : filters.status);
+        }
+        if (filters.assignment === 'unassigned') {
+          q = q.is('assigned_to', null).is('claimed_at', null).neq('status', 'closed');
+        } else if (filters.assignment === 'assigned_pending' && user?.id) {
+          q = q.eq('assigned_to', user.id).is('claimed_at', null).neq('status', 'closed');
+        } else if (filters.assignment === 'mine' && user?.id) {
+          q = q.or(`assigned_to.eq.${user.id},claimed_by.eq.${user.id}`).neq('status', 'closed');
+        }
+        if (filters.priority && filters.priority !== 'all') q = q.eq('priority', filters.priority);
+        if (filters.hasUnread) q = q.gt('unread_count', 0);
+        // Lead status + assigned/unassigned picked in the list's filter bar
+        if (filters.crmStatus) {
+          q = filters.crmStatus === 'new' ? q.or('crm_status.eq.new,crm_status.is.null') : q.eq('crm_status', filters.crmStatus);
+        }
+        if (filters.owner === 'unassigned') q = q.is('assigned_to', null);
+        else if (filters.owner === 'assigned') q = q.not('assigned_to', 'is', null);
+        if (searchContactIds) q = q.in('contact_id', searchContactIds.length ? searchContactIds : ['00000000-0000-0000-0000-000000000000']);
+        // Date range (exact UTC instants computed in the workspace timezone)
+        if (filters.dateFrom) q = q.gte(dateField, filters.dateFrom);
+        if (filters.dateTo) q = q.lt(dateField, filters.dateTo);
+        // Server-side CRM filter (junk/spam, follow_up, open)
+        if (crmFilter === 'junk') {
+          q = q.in('crm_status', ['junk', 'not_interested']);
+        } else if (crmFilter === 'follow_up') {
+          q = q.eq('crm_status', 'follow_up_required').not('crm_status', 'in', '("converted","junk")');
+        } else if (crmFilter === 'open') {
+          q = q.neq('status', 'closed').not('crm_status', 'in', '("junk","not_interested")');
+        }
+        return q;
+      };
+
+      const query = applyFilters(supabase
         .from('conversations')
         .select(`
           *,
@@ -193,95 +252,38 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
           assigned_agent:profiles!conversations_assigned_to_fkey(id, full_name, avatar_url),
           assigner:profiles!conversations_assigned_by_fkey(id, full_name),
           phone_number:phone_numbers(id, status, verified_name)
-        `)
-        .eq('tenant_id', currentTenant.id)
+        `))
         .order(sortOrder.column, { ascending: sortOrder.ascending, nullsFirst: false })
-        .limit(300);
+        .limit(limit);
+      const countHead = () => applyFilters(supabase.from('conversations').select('id', { count: 'exact', head: true }));
 
-      // Agent visibility: only see assigned/claimed to self,
-      // plus unassigned leads created AFTER the agent was added
-      if (isAgent && user?.id) {
-        const agentCreatedAt = roleEntry.agentCreatedAt || new Date().toISOString();
-        query = query.or(
-          `assigned_to.eq.${user.id},claimed_by.eq.${user.id},and(assigned_to.is.null,created_at.gte.${agentCreatedAt})`
-        );
-      }
+      // Exact "Today" / "Yesterday" group sizes (workspace time zone, same time as the sort).
+      const now = new Date();
+      const todayStart = startOfZonedDay(now, timeZone).toISOString();
+      const yesterdayStart = startOfZonedDay(now, timeZone, -1).toISOString();
+      const groupCol = sortOrder.column;
+      const rangeFrom = groupCol === dateField ? filters.dateFrom : undefined;
+      const rangeTo = groupCol === dateField ? filters.dateTo : undefined;
+      const onlyToday = !!rangeFrom && rangeFrom >= todayStart;
+      const onlyYesterday = !!rangeFrom && rangeFrom >= yesterdayStart && !!rangeTo && rangeTo <= todayStart;
+      const noToday = !!rangeTo && rangeTo <= todayStart;
+      const noYesterday = (!!rangeFrom && rangeFrom >= todayStart) || (!!rangeTo && rangeTo <= yesterdayStart);
+      const skip = Promise.resolve({ count: null as number | null });
 
-      // Apply filters based on queue model (matches useInboxQueues spec)
-      if (filters.status && filters.status !== 'all') {
-        const dbStatus = filters.status === 'pending' ? 'open' : filters.status;
-        query = query.eq('status', dbStatus);
-      }
-      if (filters.assignment === 'unassigned') {
-        query = query.is('assigned_to', null).is('claimed_at', null).neq('status', 'closed');
-      } else if (filters.assignment === 'assigned_pending' && user?.id) {
-        query = query.eq('assigned_to', user.id).is('claimed_at', null).neq('status', 'closed');
-      } else if (filters.assignment === 'mine' && user?.id) {
-        // Show conversations assigned to OR claimed by the current user
-        query = query.or(`assigned_to.eq.${user.id},claimed_by.eq.${user.id}`).neq('status', 'closed');
-      }
-      if (filters.priority && filters.priority !== 'all') {
-        query = query.eq('priority', filters.priority);
-      }
-      if (filters.hasUnread) {
-        query = query.gt('unread_count', 0);
-      }
-      // Date range (exact UTC instants computed in the workspace timezone)
-      if (filters.dateFrom) query = query.gte(dateField, filters.dateFrom);
-      if (filters.dateTo) query = query.lt(dateField, filters.dateTo);
-      // Server-side CRM filter (junk/spam, follow_up, open) so the 300-row cap
-      // doesn't accidentally hide older items in narrow tabs.
-      if (crmFilter === 'junk') {
-        query = query.in('crm_status', ['junk', 'not_interested']);
-      } else if (crmFilter === 'follow_up') {
-        query = query.eq('crm_status', 'follow_up_required').not('crm_status', 'in', '("converted","junk")');
-      } else if (crmFilter === 'open') {
-        query = query.neq('status', 'closed').not('crm_status', 'in', '("junk","not_interested")');
-      }
-
-      // Run a parallel exact-count query so UI shows the true total
-      // (Supabase caps row results at 1000, but count returns the real number)
-      let countQuery = supabase
-        .from('conversations')
-        .select('id', { count: 'exact', head: true })
-        .eq('tenant_id', currentTenant.id);
-      if (isAgent && user?.id) {
-        const agentCreatedAt = roleEntry.agentCreatedAt || new Date().toISOString();
-        countQuery = countQuery.or(
-          `assigned_to.eq.${user.id},claimed_by.eq.${user.id},and(assigned_to.is.null,created_at.gte.${agentCreatedAt})`
-        );
-      }
-      if (filters.status && filters.status !== 'all') {
-        const dbStatus = filters.status === 'pending' ? 'open' : filters.status;
-        countQuery = countQuery.eq('status', dbStatus);
-      }
-      if (filters.assignment === 'unassigned') {
-        countQuery = countQuery.is('assigned_to', null).is('claimed_at', null).neq('status', 'closed');
-      } else if (filters.assignment === 'assigned_pending' && user?.id) {
-        countQuery = countQuery.eq('assigned_to', user.id).is('claimed_at', null).neq('status', 'closed');
-      } else if (filters.assignment === 'mine' && user?.id) {
-        countQuery = countQuery.or(`assigned_to.eq.${user.id},claimed_by.eq.${user.id}`).neq('status', 'closed');
-      }
-      if (filters.priority && filters.priority !== 'all') countQuery = countQuery.eq('priority', filters.priority);
-      if (filters.hasUnread) countQuery = countQuery.gt('unread_count', 0);
-      if (filters.dateFrom) countQuery = countQuery.gte(dateField, filters.dateFrom);
-      if (filters.dateTo) countQuery = countQuery.lt(dateField, filters.dateTo);
-      if (crmFilter === 'junk') {
-        countQuery = countQuery.in('crm_status', ['junk', 'not_interested']);
-      } else if (crmFilter === 'follow_up') {
-        countQuery = countQuery.eq('crm_status', 'follow_up_required').not('crm_status', 'in', '("converted","junk")');
-      } else if (crmFilter === 'open') {
-        countQuery = countQuery.neq('status', 'closed').not('crm_status', 'in', '("junk","not_interested")');
-      }
-
-      const [{ data, error: queryError }, { count: exactCount }] = await Promise.all([
+      const [{ data, error: queryError }, { count: exactCount }, todayRes, yesterdayRes] = await Promise.all([
         query,
-        countQuery,
+        countHead(),
+        onlyToday || noToday ? skip : countHead().gte(groupCol, todayStart),
+        onlyYesterday || noYesterday ? skip : countHead().gte(groupCol, yesterdayStart).lt(groupCol, todayStart),
       ]);
 
       if (queryError) throw queryError;
       if (isStale()) return;
       setTotalCount(exactCount ?? null);
+      setDayCounts({
+        today: noToday ? 0 : onlyToday ? (exactCount ?? null) : (todayRes.count ?? null),
+        yesterday: noYesterday ? 0 : onlyYesterday ? (exactCount ?? null) : (yesterdayRes.count ?? null),
+      });
 
       let mapped = (data || []).map(mapConversation);
 
@@ -303,16 +305,6 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
         }
       }
 
-      // Client-side search filter
-      if (filters.search) {
-        const search = filters.search.toLowerCase();
-        mapped = mapped.filter(c =>
-          c.contact?.name?.toLowerCase().includes(search) ||
-          c.contact?.wa_id?.includes(search) ||
-          c.last_message_preview?.toLowerCase().includes(search)
-        );
-      }
-
       if (cacheKey) inboxCache.set(cacheKey, { data: mapped, ts: Date.now() });
       if (isStale()) return;
       setConversations(mapped);
@@ -325,7 +317,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
     })();
     inFlightRef.current = { key: requestKey, promise: run };
     try { await run; } finally { if (inFlightRef.current?.promise === run) inFlightRef.current = null; }
-  }, [currentTenant?.id, user?.id, view, filters, crmFilter, cacheKey]);
+  }, [currentTenant?.id, user?.id, view, filters, crmFilter, cacheKey, limit, timeZone]);
 
   useEffect(() => {
     if (!cacheKey) { fetchConversations(); return; }
@@ -335,8 +327,12 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
       setLoading(false);
       return; // fresh — skip network
     }
-    // Have stale cache → show it instantly while fetching in background
-    fetchConversations(!!entry);
+    // Have stale cache → show it instantly while fetching in background.
+    // "Load more" (only the limit changed) also keeps the current list on screen.
+    const baseKey = cacheKey.replace(/:\d+$/, '');
+    const onlyLimitChanged = lastBaseKeyRef.current === baseKey;
+    lastBaseKeyRef.current = baseKey;
+    fetchConversations(!!entry || onlyLimitChanged);
   }, [fetchConversations, cacheKey]);
 
   const updateConversation = useCallback((id: string, updates: Partial<InboxConversation>) => {
@@ -432,7 +428,7 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
     return () => clearInterval(interval);
   }, [currentTenant?.id, fetchConversations]);
 
-  return { conversations, totalCount, loading, error, refetch: () => fetchConversations(true), updateConversation };
+  return { conversations, totalCount, dayCounts, loading, error, refetch: () => fetchConversations(true), updateConversation };
 }
 
 export function useInboxMessages(conversationId: string | null) {

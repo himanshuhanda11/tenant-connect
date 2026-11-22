@@ -17,6 +17,9 @@ import {
 import { useInboxNotification } from '@/hooks/useInboxNotification';
 import { InboxView, InboxFilters, INBOX_VIEW_CONFIG, ConversationStatus } from '@/types/inbox';
 import { DEFAULT_INBOX_TIME_FILTER, resolveInboxTimeFilter, type InboxTimeFilterValue } from '@/components/inbox/InboxTimeFilter';
+import { EMPTY_LIST_FILTERS, type InboxListFilters } from '@/components/inbox/InboxConversationListV2';
+
+const INBOX_FETCH_STEP = 300;
 import { useWorkspaceTimezone } from '@/hooks/useWorkspaceTimezone';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -151,12 +154,30 @@ export default function InboxPage() {
   }, [location.pathname]);
 
   // Hooks
+  // Search, lead status and assigned/unassigned from the list's filter bar (applied in the database).
+  const [listFilters, setListFilters] = useState<InboxListFilters>(EMPTY_LIST_FILTERS);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const id = window.setTimeout(() => setDebouncedSearch(listFilters.search.trim()), 350);
+    return () => window.clearTimeout(id);
+  }, [listFilters.search]);
   const effectiveFilters = useMemo<InboxFilters>(
-    () => ({ ...filters, ...resolveInboxTimeFilter(timeFilter, timeZone) }),
+    () => ({
+      ...filters,
+      ...resolveInboxTimeFilter(timeFilter, timeZone),
+      search: debouncedSearch || undefined,
+      crmStatus: listFilters.crmStatus !== 'all' ? listFilters.crmStatus : undefined,
+      owner: listFilters.owner !== 'all' ? listFilters.owner : undefined,
+    }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filters, timeFilter, timeZone, timeTick],
+    [filters, timeFilter, timeZone, timeTick, debouncedSearch, listFilters.crmStatus, listFilters.owner],
   );
-  const { conversations, totalCount, loading: loadingConversations, refetch } = useInboxConversations(view, effectiveFilters, crmFilter);
+  // How many chats to fetch; "Load more" raises it once the loaded ones are all shown.
+  const [fetchLimit, setFetchLimit] = useState(INBOX_FETCH_STEP);
+  const filtersKey = JSON.stringify([view, crmFilter, effectiveFilters]);
+  useEffect(() => { setFetchLimit(INBOX_FETCH_STEP); }, [filtersKey]);
+  const { conversations, totalCount, dayCounts, loading: loadingConversations, refetch } = useInboxConversations(view, effectiveFilters, crmFilter, fetchLimit);
+  const loadMoreFromServer = useCallback(() => setFetchLimit((l) => l + INBOX_FETCH_STEP), []);
 
   // Apply CRM filter client-side for follow_up / junk views
   const filteredConversations = useMemo(() => {
@@ -312,6 +333,10 @@ export default function InboxPage() {
                     currentUserId={user?.id}
                     unreadNewCount={unreadNewCount}
                     totalCount={totalCount ?? undefined}
+                    dayCounts={dayCounts}
+                    onLoadMoreFromServer={loadMoreFromServer}
+                    listFilters={listFilters}
+                    onListFiltersChange={setListFilters}
                     onClearNotifications={clearNotifications}
                     timeFilter={timeFilter}
                     onTimeFilterChange={setTimeFilter}
@@ -392,6 +417,10 @@ export default function InboxPage() {
               currentUserId={user?.id}
               unreadNewCount={unreadNewCount}
               totalCount={totalCount ?? undefined}
+              dayCounts={dayCounts}
+              onLoadMoreFromServer={loadMoreFromServer}
+              listFilters={listFilters}
+              onListFiltersChange={setListFilters}
               onClearNotifications={clearNotifications}
               timeFilter={timeFilter}
               onTimeFilterChange={setTimeFilter}

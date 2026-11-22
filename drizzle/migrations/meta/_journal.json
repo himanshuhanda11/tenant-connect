@@ -85,6 +85,13 @@
       "when": 1795375674986,
       "tag": "0011_sync_profile_name_with_team_name",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1795376263759,
+      "tag": "0012_fix_record_agent_login_audit_cast",
+      "breakpoints": true
     }
   ]
 }

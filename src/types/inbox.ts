@@ -223,6 +223,10 @@ export interface InboxFilters {
   /** Which time the date range applies to */
   dateField?: InboxDateField;
   sort?: InboxSort;
+  /** Lead status picked in the list filter bar (conversations.crm_status) */
+  crmStatus?: string;
+  /** Assigned / unassigned picked in the list filter bar */
+  owner?: 'assigned' | 'unassigned';
 }
 
 export type InboxDateField = 'created_at' | 'last_inbound_at' | 'last_message_at';

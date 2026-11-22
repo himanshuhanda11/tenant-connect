@@ -12,6 +12,8 @@ import {
   Inbox,
   SlidersHorizontal,
   MoreHorizontal,
+  Check,
+  X,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -23,7 +25,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { format, differenceInMinutes, differenceInHours, differenceInDays } from 'date-fns';
 import { InboxConversation, InboxView, InboxFilters, inboxSortOrder, type InboxSort } from '@/types/inbox';
-import { InboxTimeFilter, DEFAULT_INBOX_TIME_FILTER, type InboxTimeFilterValue } from './InboxTimeFilter';
+import { InboxDateTabs, InboxSortMenu, describeInboxCount, DEFAULT_INBOX_TIME_FILTER, type InboxTimeFilterValue } from './InboxTimeFilter';
 import { useWorkspaceTimezone } from '@/hooks/useWorkspaceTimezone';
 import { useAgentDisplayNames } from '@/hooks/useAgentDisplayNames';
 import { formatInZone, startOfZonedDay } from '@/lib/workspaceTime';
@@ -44,6 +46,12 @@ interface InboxConversationListV2Props {
   currentUserId?: string;
   unreadNewCount?: number;
   totalCount?: number;
+  /** Exact sizes of the Today / Yesterday groups */
+  dayCounts?: { today: number | null; yesterday: number | null };
+  /** Fetch the next batch of chats from the server */
+  onLoadMoreFromServer?: () => void;
+  listFilters?: InboxListFilters;
+  onListFiltersChange?: (f: InboxListFilters) => void;
   onClearNotifications?: () => void;
   timeFilter?: InboxTimeFilterValue;
   onTimeFilterChange?: (v: InboxTimeFilterValue) => void;
@@ -92,70 +100,88 @@ const groupByDate = (conversations: InboxConversation[], timeZone: string, sort?
   return groups;
 };
 
+export interface InboxListFilters {
+  search: string;
+  crmStatus: StatusFilter;
+  owner: 'all' | 'unassigned' | 'assigned';
+}
+export const EMPTY_LIST_FILTERS: InboxListFilters = { search: '', crmStatus: 'all', owner: 'all' };
+
+const STATUS_LABELS: Record<Exclude<StatusFilter, 'all'>, string> = {
+  new: 'New', assigned: 'Assigned', contacted: 'Contacted',
+  follow_up_required: 'Follow-up', call_scheduled: 'Call scheduled',
+  documents_pending: 'Documents pending', qualified: 'Qualified',
+  converted: 'Converted', not_interested: 'Not interested', junk: 'Junk',
+};
+const OWNER_LABELS: Record<InboxListFilters['owner'], string> = {
+  all: 'Everyone', unassigned: 'Unassigned', assigned: 'Assigned',
+};
+
+const filterBtn = (active: boolean) => cn(
+  'flex min-w-0 items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors',
+  active ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border/60 bg-card text-foreground hover:bg-muted',
+);
+
 export function InboxConversationListV2({
   conversations,
   selectedId,
   onSelect,
-  view,
-  onViewChange,
-  filters,
-  onFiltersChange,
   loading,
   isMobile = false,
   currentUserId,
   unreadNewCount = 0,
   totalCount,
+  dayCounts,
+  onLoadMoreFromServer,
+  listFilters = EMPTY_LIST_FILTERS,
+  onListFiltersChange,
   onClearNotifications,
   timeFilter = DEFAULT_INBOX_TIME_FILTER,
   onTimeFilterChange,
 }: InboxConversationListV2Props) {
   const timeZone = useWorkspaceTimezone();
   const agentName = useAgentDisplayNames();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [assignmentFilter, setAssignmentFilter] = useState<'all' | 'unassigned' | 'assigned'>('all');
-
-  const filteredConversations = useMemo(() => {
-    let result = conversations;
-
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(c =>
-        c.contact?.name?.toLowerCase().includes(q) ||
-        c.contact?.wa_id?.includes(q) ||
-        c.last_message_preview?.toLowerCase().includes(q)
-      );
-    }
-
-    if (statusFilter !== 'all') {
-      result = result.filter(c => c.crm_status === statusFilter);
-    }
-
-    if (assignmentFilter === 'unassigned') {
-      result = result.filter(c => !c.assigned_to);
-    } else if (assignmentFilter === 'assigned') {
-      result = result.filter(c => !!c.assigned_to);
-    }
-
-    return result;
-  }, [conversations, searchQuery, statusFilter, assignmentFilter]);
+  const setList = (patch: Partial<InboxListFilters>) => onListFiltersChange?.({ ...listFilters, ...patch });
+  const statusFilter = listFilters.crmStatus;
+  const assignmentFilter = listFilters.owner;
+  const filteredConversations = conversations;
 
   const PAGE_SIZE = 25;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   // Reset visible count when filters change
-  const filterKey = `${searchQuery}-${JSON.stringify(timeFilter)}-${statusFilter}-${assignmentFilter}`;
+  const filterKey = `${JSON.stringify(listFilters)}-${JSON.stringify(timeFilter)}`;
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
   if (filterKey !== prevFilterKey) {
     setVisibleCount(PAGE_SIZE);
     setPrevFilterKey(filterKey);
   }
 
+  const total = typeof totalCount === 'number' ? Math.max(totalCount, filteredConversations.length) : filteredConversations.length;
   const paginatedConversations = useMemo(() => filteredConversations.slice(0, visibleCount), [filteredConversations, visibleCount]);
-  const hasMore = filteredConversations.length > visibleCount;
+  const shown = paginatedConversations.length;
+  const hasMore = shown < total;
+  const loadMore = () => {
+    const next = visibleCount + PAGE_SIZE;
+    // Ask the server for the next batch before the loaded chats run out.
+    if (next > filteredConversations.length - PAGE_SIZE && filteredConversations.length < total) onLoadMoreFromServer?.();
+    setVisibleCount(next);
+  };
 
   const groups = useMemo(() => groupByDate(paginatedConversations, timeZone, timeFilter.sort), [paginatedConversations, timeZone, timeFilter.sort]);
+  const groupTotal = (label: string, fallback: number) => {
+    const t = dayCounts?.today, y = dayCounts?.yesterday;
+    if (label === 'Today') return t ?? fallback;
+    if (label === 'Yesterday') return y ?? fallback;
+    if (t != null && y != null && typeof totalCount === 'number') return Math.max(totalCount - t - y, fallback);
+    return fallback;
+  };
   const totalUnread = conversations.reduce((sum, c) => sum + c.unread_count, 0);
+  const anyFilter = !!listFilters.search || statusFilter !== 'all' || assignmentFilter !== 'all' || timeFilter.preset !== 'all';
+  const clearAll = () => {
+    onListFiltersChange?.(EMPTY_LIST_FILTERS);
+    onTimeFilterChange?.({ ...timeFilter, preset: 'all', custom: undefined });
+  };
 
   return (
     <div className={cn(
@@ -163,12 +189,12 @@ export function InboxConversationListV2({
       isMobile && "border-r-0"
     )}>
       {/* Header */}
-      <div className="flex-shrink-0 px-4 pt-4 pb-3 border-b border-border/40">
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-2.5">
+      <div className="flex-shrink-0 space-y-2.5 px-3 pt-3 pb-2.5 border-b border-border/40">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
             <h2 className="text-lg font-bold text-foreground tracking-tight">Inbox</h2>
             {totalUnread > 0 && (
-              <Badge variant="destructive" className="h-5 min-w-[24px] px-1.5 text-[10px] font-bold rounded-full">
+              <Badge variant="destructive" className="h-5 min-w-[24px] px-1.5 text-[10px] font-bold rounded-full" title={`${totalUnread} unread messages`}>
                 {totalUnread > 99 ? '99+' : totalUnread}
               </Badge>
             )}
@@ -178,6 +204,7 @@ export function InboxConversationListV2({
             size="icon"
             className="relative h-8 w-8 text-muted-foreground hover:text-foreground"
             onClick={onClearNotifications}
+            aria-label="Notifications"
           >
             <Bell className="h-4 w-4" />
             {unreadNewCount > 0 && (
@@ -187,96 +214,83 @@ export function InboxConversationListV2({
             )}
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground mb-3">
-          {(() => {
-            const localFiltered = statusFilter !== 'all' || assignmentFilter !== 'all' || !!searchQuery;
-            const display = !localFiltered && typeof totalCount === 'number' ? totalCount : filteredConversations.length;
-            return `${display} conversations`;
-          })()}{hasMore ? ` · Showing ${visibleCount}` : ''}{totalUnread > 0 && ` · ${totalUnread} unread`}
-        </p>
 
-        {/* Search */}
+        {/* Search (searches every chat, not just the loaded ones) */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name or phone..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 text-sm bg-muted/40 border border-border/40 rounded-lg focus-visible:ring-1"
+            placeholder="Search name or phone"
+            value={listFilters.search}
+            onChange={(e) => setList({ search: e.target.value })}
+            className="pl-9 pr-8 h-9 text-sm bg-muted/40 border border-border/40 rounded-lg focus-visible:ring-1"
           />
+          {listFilters.search && (
+            <button type="button" aria-label="Clear search" onClick={() => setList({ search: '' })} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
-      </div>
 
-      {/* Filter Chips */}
-      <div className="flex-shrink-0 border-b border-border/30">
-        <div className="flex items-center gap-1.5 px-3 py-2.5 flex-wrap">
-          <InboxTimeFilter
-            value={timeFilter}
-            onChange={(v) => onTimeFilterChange?.(v)}
-            timeZone={timeZone}
-          />
+        {/* When */}
+        <InboxDateTabs value={timeFilter} onChange={(v) => onTimeFilterChange?.(v)} timeZone={timeZone} />
+
+        {/* Lead status · Assigned · Sort */}
+        <div className="flex flex-wrap items-center gap-1.5">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className={cn(
-                "flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 border",
-                statusFilter !== 'all'
-                  ? "bg-primary/10 text-primary border-primary/30"
-                  : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border-border/40"
-              )}>
-                <SlidersHorizontal className="h-3 w-3" />
-                {statusFilter !== 'all' ? statusFilter.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Status'}
-                <ChevronDown className="h-3 w-3" />
+              <button type="button" className={filterBtn(statusFilter !== 'all')} aria-label="Filter by lead status">
+                <span className="truncate">{statusFilter === 'all' ? 'Any status' : STATUS_LABELS[statusFilter]}</span>
+                <ChevronDown className="h-3 w-3 flex-shrink-0 opacity-60" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuLabel className="text-xs">Filter by Lead Status</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-xs">Lead status</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setStatusFilter('all')}>
-                {statusFilter === 'all' && '✓ '}All Statuses
+              <DropdownMenuItem onClick={() => setList({ crmStatus: 'all' })}>
+                <Check className={cn('mr-2 h-3.5 w-3.5', statusFilter !== 'all' && 'invisible')} />Any status
               </DropdownMenuItem>
-              {(['new', 'assigned', 'contacted', 'follow_up_required', 'call_scheduled', 'documents_pending', 'qualified', 'converted', 'not_interested', 'junk'] as StatusFilter[]).map(s => {
-                const labels: Record<string, string> = {
-                  new: 'New', assigned: 'Assigned', contacted: 'Contacted',
-                  follow_up_required: 'Follow-up Required', call_scheduled: 'Call Scheduled',
-                  documents_pending: 'Documents Pending', qualified: 'Qualified',
-                  converted: 'Converted', not_interested: 'Not Interested', junk: 'Junk',
-                };
-                return (
-                  <DropdownMenuItem key={s} onClick={() => setStatusFilter(s)}>
-                    {statusFilter === s && '✓ '}{labels[s] || s}
-                  </DropdownMenuItem>
-                );
-              })}
+              {(Object.keys(STATUS_LABELS) as Exclude<StatusFilter, 'all'>[]).map(s => (
+                <DropdownMenuItem key={s} onClick={() => setList({ crmStatus: s })}>
+                  <Check className={cn('mr-2 h-3.5 w-3.5', statusFilter !== s && 'invisible')} />{STATUS_LABELS[s]}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          {/* Assignment filter */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className={cn(
-                "flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 border",
-                assignmentFilter !== 'all'
-                  ? "bg-primary/10 text-primary border-primary/30"
-                  : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border-border/40"
-              )}>
-                <SlidersHorizontal className="h-3 w-3" />
-                {assignmentFilter === 'unassigned' ? 'Unassigned' : assignmentFilter === 'assigned' ? 'Assigned' : 'Assignment'}
-                <ChevronDown className="h-3 w-3" />
+              <button type="button" className={filterBtn(assignmentFilter !== 'all')} aria-label="Filter by assigned agent">
+                <span className="truncate">{assignmentFilter === 'all' ? 'Any agent' : OWNER_LABELS[assignmentFilter]}</span>
+                <ChevronDown className="h-3 w-3 flex-shrink-0 opacity-60" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-44">
-              <DropdownMenuLabel className="text-xs">Filter by Assignment</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-xs">Assigned to</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setAssignmentFilter('all')}>
-                {assignmentFilter === 'all' && '✓ '}All
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setAssignmentFilter('unassigned')}>
-                {assignmentFilter === 'unassigned' && '✓ '}Unassigned
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setAssignmentFilter('assigned')}>
-                {assignmentFilter === 'assigned' && '✓ '}Assigned
-              </DropdownMenuItem>
+              {(Object.keys(OWNER_LABELS) as InboxListFilters['owner'][]).map(o => (
+                <DropdownMenuItem key={o} onClick={() => setList({ owner: o })}>
+                  <Check className={cn('mr-2 h-3.5 w-3.5', assignmentFilter !== o && 'invisible')} />{o === 'all' ? 'Any agent' : OWNER_LABELS[o]}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
+          <InboxSortMenu value={timeFilter.sort} onChange={(sort) => onTimeFilterChange?.({ ...timeFilter, sort })} />
+        </div>
+
+        {/* Exact count of what's shown */}
+        <div className="flex items-center justify-between gap-2 rounded-lg bg-muted/40 px-2.5 py-1.5">
+          <p className="min-w-0 text-xs text-muted-foreground" aria-live="polite">
+            {loading && typeof totalCount !== 'number' ? 'Counting…' : (
+              <>
+                <span className="font-semibold text-foreground">{describeInboxCount(total, timeFilter, timeZone)}</span>
+                {total > 0 && <span> · showing {shown.toLocaleString('en-US')}</span>}
+              </>
+            )}
+          </p>
+          {anyFilter && (
+            <button type="button" onClick={clearAll} className="flex-shrink-0 text-xs font-medium text-primary hover:underline">
+              Clear
+            </button>
+          )}
         </div>
       </div>
 
@@ -300,7 +314,7 @@ export function InboxConversationListV2({
             <Inbox className="h-10 w-10 mx-auto mb-3 text-muted-foreground/40" />
             <p className="text-sm font-medium text-muted-foreground">No conversations</p>
             <p className="text-xs text-muted-foreground/70 mt-1">
-              {searchQuery ? 'Try a different search' : 'Start a conversation to see it here'}
+              {anyFilter ? 'No chats match these filters' : 'Start a conversation to see it here'}
             </p>
           </div>
         ) : (
@@ -311,7 +325,7 @@ export function InboxConversationListV2({
                   {/* Date Group Header */}
                   <div className="sticky top-0 z-10 px-2 py-2 bg-card/90 backdrop-blur-sm">
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      {group.label} · {group.conversations.length}
+                      {group.label} · {groupTotal(group.label, group.conversations.length).toLocaleString('en-US')}
                     </span>
                   </div>
 
@@ -347,10 +361,10 @@ export function InboxConversationListV2({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
+                  onClick={loadMore}
                   className="w-full text-xs font-medium"
                 >
-                  Load more ({filteredConversations.length - visibleCount} remaining)
+                  Load {Math.min(PAGE_SIZE, total - shown)} more · {shown.toLocaleString('en-US')} of {total.toLocaleString('en-US')} shown
                 </Button>
               </div>
             )}
