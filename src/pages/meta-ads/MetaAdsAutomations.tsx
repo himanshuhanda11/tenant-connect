@@ -18,7 +18,8 @@ import { useMetaAdAccounts } from '@/hooks/useMetaAdAccounts';
 import { useTeamMembers, useTeams } from '@/hooks/useTeam';
 import { useWhatsAppAdSources, adSourceLabel, type WhatsAppAdSource } from '@/hooks/useWhatsAppAdSources';
 import { useMetaAdAutomations, type MetaAdAutomation } from '@/hooks/useMetaAdAutomations';
-import { describeAssignment } from '@/lib/metaAdRouting';
+import { buildAdLeadBreakdown, describeAssignment, isAdLive, LIVE_AD_WINDOW_DAYS } from '@/lib/metaAdRouting';
+import { useAdAgentLeadBreakdown } from '@/hooks/useAdAgentLeadBreakdown';
 import { findWinningRoutingRule, getTargetAdIds, routingSpecificity, sortAutomationsByPriority } from '@/lib/metaAdTargeting';
 import { AdRoutingRow } from '@/components/meta-ads/routing/AdRoutingRow';
 import { RoutingRuleCard } from '@/components/meta-ads/routing/RoutingRuleCard';
@@ -27,6 +28,7 @@ import { cn } from '@/lib/utils';
 
 type TabKey = 'ads' | 'rules' | 'campaigns';
 type AdFilter = 'all' | 'routed' | 'unrouted';
+type LiveFilter = 'live' | 'all';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -47,13 +49,16 @@ export default function MetaAdsAutomations() {
   const { adSources, isLoading: adsLoading, dataUpdatedAt: adsUpdatedAt, refetch: refetchAds, rename } = useWhatsAppAdSources();
   const { automations, isLoading: rulesLoading, dataUpdatedAt: rulesUpdatedAt, refetch: refetchRules, toggle, remove } = useMetaAdAutomations();
 
+  const { rows: breakdownRows, refetch: refetchBreakdown } = useAdAgentLeadBreakdown();
+
   const [params, setParams] = useSearchParams();
   const tab = (['ads', 'rules', 'campaigns'].includes(params.get('tab') || '') ? params.get('tab') : 'ads') as TabKey;
   const setTab = (next: string) => setParams(p => { p.set('tab', next); return p; }, { replace: true });
 
   const [adFilter, setAdFilter] = useState<AdFilter>('all');
   const [search, setSearch] = useState('');
-  const [campaignFilter, setCampaignFilter] = useState<'all' | 'live' | 'off'>('all');
+  const [liveFilter, setLiveFilter] = useState<LiveFilter>('live');
+  const [campaignFilter, setCampaignFilter] = useState<'all' | 'live' | 'off'>('live');
   const [refreshing, setRefreshing] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -88,6 +93,9 @@ export default function MetaAdsAutomations() {
     return map;
   }, [campaignAdRows]);
   const metaStatusByAdId = useMemo(() => new Map(campaignAdRows.map(r => [r.id, r.status])), [campaignAdRows]);
+  const metaAdById = useMemo(() => new Map(campaignAdRows.map(r => [r.id, r])), [campaignAdRows]);
+  /** Ad name: your own rename, then the name in Facebook, then the WhatsApp headline. */
+  const adTitle = useCallback((ad: WhatsAppAdSource) => ad.display_name?.trim() || metaAdById.get(ad.ad_id)?.name || adSourceLabel(ad), [metaAdById]);
 
   const ruleForAd = useCallback((adId: string, extraCampaignIds: string[] = []) => findWinningRoutingRule(automations, {
     referralSourceId: adId,
@@ -100,17 +108,20 @@ export default function MetaAdsAutomations() {
     return map;
   }, [adSources, ruleForAd]);
 
-  const adLabelById = useMemo(() => new Map(adSources.map(a => [a.ad_id, adSourceLabel(a)])), [adSources]);
+  const adLabelById = useMemo(() => new Map(adSources.map(a => [a.ad_id, adTitle(a)])), [adSources, adTitle]);
   const orderedRules = useMemo(() => sortAutomationsByPriority(automations), [automations]);
 
-  const routedCount = adSources.filter(a => currentRuleByAdId.has(a.ad_id)).length;
-  const unroutedCount = adSources.length - routedCount;
-  const totalLeads = adSources.reduce((sum, a) => sum + (a.leads_count || 0), 0);
+  const breakdownByAdId = useMemo(() => buildAdLeadBreakdown(breakdownRows, members), [breakdownRows, members]);
+  const liveAds = adSources.filter(a => isAdLive({ metaStatus: metaStatusByAdId.get(a.ad_id), lastChatAt: a.last_seen_at }));
+  const scopedAds = liveFilter === 'live' ? liveAds : adSources;
+  const routedCount = scopedAds.filter(a => currentRuleByAdId.has(a.ad_id)).length;
+  const unroutedCount = scopedAds.length - routedCount;
+  const totalLeads = scopedAds.reduce((sum, a) => sum + (a.leads_count || 0), 0);
   const activeRules = automations.filter(a => a.is_active).length;
   const liveCampaignAds = campaignAdRows.filter(r => r.status === 'active').length;
 
   const query = search.trim().toLowerCase();
-  const visibleAds = adSources
+  const visibleAds = scopedAds
     .filter(ad => adFilter === 'all' || (adFilter === 'routed') === currentRuleByAdId.has(ad.ad_id))
     .filter(ad => !query || adSourceLabel(ad).toLowerCase().includes(query) || ad.ad_id.includes(query) || (ad.headline || '').toLowerCase().includes(query))
     .sort((a, b) => Number(currentRuleByAdId.has(a.ad_id)) - Number(currentRuleByAdId.has(b.ad_id)) || Date.parse(b.last_seen_at) - Date.parse(a.last_seen_at));
@@ -128,7 +139,7 @@ export default function MetaAdsAutomations() {
   const refreshAll = async () => {
     setRefreshing(true);
     try {
-      await withTimeout(Promise.all([refetchAds(), refetchRules(), refetchMeta()]), 15_000, 'Refresh is taking too long. Check your internet and try again.');
+      await withTimeout(Promise.all([refetchAds(), refetchRules(), refetchMeta(), refetchBreakdown()]), 15_000, 'Refresh is taking too long. Check your internet and try again.');
       toast.success('Up to date');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not refresh');
@@ -204,9 +215,9 @@ export default function MetaAdsAutomations() {
     const meta = metaStatusByAdId.get(ad.ad_id);
     if (meta) return meta === 'active' ? { status: 'live', label: 'Live on Meta' } : { status: 'paused', label: 'Paused on Meta' };
     const age = Date.now() - Date.parse(ad.last_seen_at);
-    if (age < DAY) return { status: 'recent', label: 'Chats today' };
-    if (age < 7 * DAY) return { status: 'recent', label: 'Chats this week' };
-    return { status: 'quiet', label: 'No recent chats' };
+    if (age < DAY) return { status: 'live', label: 'Live · chats today' };
+    if (age < LIVE_AD_WINDOW_DAYS * DAY) return { status: 'recent', label: 'Live · chats this week' };
+    return { status: 'quiet', label: 'Stopped · no chats lately' };
   };
 
   const ruleSources = (rule: MetaAdAutomation) => {
@@ -220,10 +231,10 @@ export default function MetaAdsAutomations() {
 
   // ---------- UI ----------
   const stats = [
-    { key: 'all', label: 'Ads bringing chats', value: adSources.length, icon: MessageCircle, tone: 'bg-primary/10 text-primary', onClick: () => { setTab('ads'); setAdFilter('all'); } },
+    { key: 'all', label: liveFilter === 'live' ? 'Live ads' : 'Ads bringing chats', value: scopedAds.length, icon: MessageCircle, tone: 'bg-primary/10 text-primary', onClick: () => { setTab('ads'); setAdFilter('all'); } },
     { key: 'routed', label: 'Ads with agents', value: routedCount, icon: CheckCircle2, tone: 'bg-success/10 text-success', onClick: () => { setTab('ads'); setAdFilter('routed'); } },
     { key: 'unrouted', label: 'Ads needing agents', value: unroutedCount, icon: AlertTriangle, tone: unroutedCount ? 'bg-warning/15 text-warning' : 'bg-muted text-muted-foreground', onClick: () => { setTab('ads'); setAdFilter('unrouted'); } },
-    { key: 'leads', label: 'Leads from ads', value: totalLeads.toLocaleString(), icon: TrendingUp, tone: 'bg-info/10 text-info', onClick: () => setTab('ads') },
+    { key: 'leads', label: liveFilter === 'live' ? 'Leads from live ads' : 'Leads from ads', value: totalLeads.toLocaleString(), icon: TrendingUp, tone: 'bg-info/10 text-info', onClick: () => setTab('ads') },
   ];
 
   return (
@@ -271,7 +282,7 @@ export default function MetaAdsAutomations() {
         <Tabs value={tab} onValueChange={setTab} className="space-y-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <TabsList className="h-auto w-full justify-start overflow-x-auto rounded-xl p-1 md:w-auto">
-              <TabsTrigger value="ads" className="gap-1.5 rounded-lg px-3 py-1.5">Ads → Agents<CountPill n={adSources.length} /></TabsTrigger>
+              <TabsTrigger value="ads" className="gap-1.5 rounded-lg px-3 py-1.5">Ads → Agents<CountPill n={liveAds.length} /></TabsTrigger>
               <TabsTrigger value="rules" className="gap-1.5 rounded-lg px-3 py-1.5">Routing rules<CountPill n={activeRules} /></TabsTrigger>
               <TabsTrigger value="campaigns" className="gap-1.5 rounded-lg px-3 py-1.5">Facebook campaigns{campaigns.length > 0 && <CountPill n={liveCampaignAds} />}</TabsTrigger>
             </TabsList>
@@ -286,23 +297,37 @@ export default function MetaAdsAutomations() {
           {/* Ads → Agents */}
           <TabsContent value="ads" className="mt-0 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+              <Segmented value={liveFilter} onChange={v => setLiveFilter(v as LiveFilter)} options={[
+                { value: 'live', label: `Live ads (${liveAds.length})` },
+                { value: 'all', label: `All ads (${adSources.length})` },
+              ]} />
               <Segmented value={adFilter} onChange={v => setAdFilter(v as AdFilter)} options={[
-                { value: 'all', label: `All (${adSources.length})` },
+                { value: 'all', label: `Any (${scopedAds.length})` },
                 { value: 'unrouted', label: `Needs agents (${unroutedCount})` },
                 { value: 'routed', label: `Has agents (${routedCount})` },
               ]} />
-              <p className="text-[11px] text-muted-foreground">Ads appear here automatically when someone messages you from them.</p>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                {connectedAccounts.length > 0
+                  ? (latestMetaSync ? `Live/paused from Facebook · checked ${formatDistanceToNow(new Date(latestMetaSync), { addSuffix: true })} · auto every 5 min` : 'Checking Facebook…')
+                  : liveFilter === 'live' ? `Live = a chat in the last ${LIVE_AD_WINDOW_DAYS} days (connect Facebook for exact status).` : 'Ads appear here automatically when someone messages you from them.'}
+              </p>
             </div>
             {loading ? <RowSkeletons /> : visibleAds.length === 0 ? (
-              <Empty icon={MessageCircle} title={adSources.length === 0 ? 'No ad chats yet' : 'No ads match'}
-                text={adSources.length === 0 ? 'When someone taps a Click-to-WhatsApp ad and messages you, the ad shows up here so you can pick its agents.' : 'Try another filter or search.'} />
+              <Empty icon={MessageCircle}
+                title={adSources.length === 0 ? 'No ad chats yet' : liveFilter === 'live' && liveAds.length === 0 ? 'No live ads right now' : 'No ads match'}
+                text={adSources.length === 0 ? 'When someone taps a Click-to-WhatsApp ad and messages you, the ad shows up here so you can pick its agents.'
+                  : liveFilter === 'live' && liveAds.length === 0 ? `None of your ads brought a chat in the last ${LIVE_AD_WINDOW_DAYS} days.` : 'Try another filter or search.'}
+                action={liveFilter === 'live' && adSources.length > 0 ? <Button variant="outline" onClick={() => setLiveFilter('all')}>Show all ads</Button> : undefined} />
             ) : visibleAds.map(ad => {
               const rule = currentRuleByAdId.get(ad.ad_id) || null;
               const st = adStatus(ad);
+              const metaAd = metaAdById.get(ad.ad_id);
               return (
                 <AdRoutingRow key={ad.id}
-                  title={adSourceLabel(ad)}
-                  subtitle={`Ad ID …${ad.ad_id.slice(-6)}${ad.display_name && ad.headline ? ` · ${ad.headline}` : ''}`}
+                  title={adTitle(ad)}
+                  subtitle={metaAd ? `Campaign: ${metaAd.campaignName} · Ad ID …${ad.ad_id.slice(-6)}` : `Ad ID …${ad.ad_id.slice(-6)}${ad.display_name && ad.headline ? ` · ${ad.headline}` : ''}`}
                   leads={ad.leads_count}
                   lastChatAt={ad.last_seen_at}
                   status={st.status} statusLabel={st.label}
@@ -311,7 +336,8 @@ export default function MetaAdsAutomations() {
                   summary={rule ? describeAssignment(rule.actions, members, teams) : null}
                   onRoute={() => routeAd(ad.ad_id, rule)}
                   onRename={name => handleRename(ad, name)}
-                  renameValue={ad.display_name || adSourceLabel(ad)}
+                  renameValue={adTitle(ad)}
+                  received={breakdownByAdId.get(ad.ad_id)}
                 />
               );
             })}
@@ -375,6 +401,7 @@ export default function MetaAdsAutomations() {
                       ruleIsGeneral={!!rule && routingSpecificity(rule) === 2}
                       summary={rule ? describeAssignment(rule.actions, members, teams) : null}
                       onRoute={() => routeAd(row.id, rule)}
+                      received={breakdownByAdId.get(row.id)}
                     />
                   );
                 })}

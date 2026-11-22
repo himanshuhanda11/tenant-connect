@@ -4,8 +4,9 @@ import { ArrowDown, ArrowRight, Check, Pencil, UserPlus, X, AlertTriangle } from
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AgentStack } from './AgentStack';
-import type { AssignmentSummary } from '@/lib/metaAdRouting';
+import { initials, type AdLeadBreakdown, type AssignmentSummary } from '@/lib/metaAdRouting';
 import { cn } from '@/lib/utils';
 
 export interface AdRoutingRowProps {
@@ -23,6 +24,8 @@ export interface AdRoutingRowProps {
   onRoute: () => void;
   onRename?: (name: string) => Promise<void>;
   renameValue?: string;
+  /** Leads this ad actually brought, per agent. */
+  received?: AdLeadBreakdown | null;
 }
 
 const STATUS_DOT: Record<AdRoutingRowProps['status'], string> = {
@@ -34,7 +37,7 @@ const STATUS_DOT: Record<AdRoutingRowProps['status'], string> = {
 
 /** One ad on the left, the agents who get its leads on the right. */
 export function AdRoutingRow(props: AdRoutingRowProps) {
-  const { title, subtitle, leads, lastChatAt, status, statusLabel, ruleName, ruleIsGeneral, summary, onRoute, onRename, renameValue } = props;
+  const { title, subtitle, leads, lastChatAt, status, statusLabel, ruleName, ruleIsGeneral, summary, onRoute, onRename, renameValue, received } = props;
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState('');
   const routed = !!summary;
@@ -111,6 +114,60 @@ export function AdRoutingRow(props: AdRoutingRowProps) {
         <UserPlus className="h-3.5 w-3.5" />
         {routed ? (ruleIsGeneral ? 'Pick agents for this ad' : 'Change agents') : 'Pick agents'}
       </Button>
+
+      {received && received.total > 0 && <ReceivedLeads data={received} />}
+    </div>
+  );
+}
+
+/** Who actually got this ad's leads, busiest agent first. */
+function ReceivedLeads({ data }: { data: AdLeadBreakdown }) {
+  const [showAll, setShowAll] = useState(false);
+  const max = Math.max(1, ...data.agents.map(a => a.leads), data.unassigned);
+  const todayTotal = data.agents.reduce((s, a) => s + a.recentLeads, 0) + data.unassignedRecent;
+  const rows = [
+    ...data.agents.map(a => ({ key: a.id, name: a.name, leads: a.leads, today: a.recentLeads, avatarUrl: a.avatarUrl, unassigned: false })),
+    ...(data.unassigned ? [{ key: 'none', name: 'Not assigned yet', leads: data.unassigned, today: data.unassignedRecent, avatarUrl: null, unassigned: true }] : []),
+  ];
+  const visible = showAll ? rows : rows.slice(0, 6);
+
+  return (
+    <div className="rounded-xl border bg-muted/30 p-3 lg:col-span-4">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Where this ad's leads went</p>
+        <p className="text-[11px] text-muted-foreground">
+          <span className="font-semibold text-foreground">{data.total.toLocaleString()}</span> leads · <span className="font-semibold text-foreground">{todayTotal}</span> today
+        </p>
+      </div>
+      <div className="grid gap-x-4 gap-y-2 sm:grid-cols-2 xl:grid-cols-3">
+        {visible.map(r => (
+          <div key={r.key} className="flex min-w-0 items-center gap-2">
+            <Avatar className="h-7 w-7 shrink-0">
+              {r.avatarUrl ? <AvatarImage src={r.avatarUrl} alt={r.name} /> : null}
+              <AvatarFallback className={cn('text-[10px] font-semibold', r.unassigned ? 'bg-warning/15 text-warning' : 'bg-primary/10 text-primary')}>
+                {r.unassigned ? '?' : initials(r.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="truncate text-xs font-medium" title={r.name}>{r.name}</p>
+                <p className="shrink-0 text-xs tabular-nums">
+                  <span className="font-semibold">{r.leads.toLocaleString()}</span>
+                  {r.today > 0 && <span className="ml-1 text-[10px] font-medium text-success">+{r.today} today</span>}
+                </p>
+              </div>
+              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+                <div className={cn('h-full rounded-full', r.unassigned ? 'bg-warning' : 'bg-primary')} style={{ width: `${Math.max(4, (r.leads / max) * 100)}%` }} />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {rows.length > 6 && (
+        <button type="button" onClick={() => setShowAll(v => !v)} className="mt-2 text-[11px] font-medium text-primary hover:underline">
+          {showAll ? 'Show less' : `Show all ${rows.length}`}
+        </button>
+      )}
     </div>
   );
 }

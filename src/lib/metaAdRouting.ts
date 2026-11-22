@@ -71,3 +71,60 @@ export function initials(name: string) {
   if (parts.length === 0) return '?';
   return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
 }
+
+/** An ad counts as live when Meta says it is active, or — without Facebook — when it brought a chat recently. */
+export const LIVE_AD_WINDOW_DAYS = 7;
+
+export function isAdLive(opts: { metaStatus?: string | null; lastChatAt?: string | null; now?: number; windowDays?: number }) {
+  const { metaStatus, lastChatAt, now = Date.now(), windowDays = LIVE_AD_WINDOW_DAYS } = opts;
+  if (metaStatus) return metaStatus.toLowerCase() === 'active';
+  if (!lastChatAt) return false;
+  const at = Date.parse(lastChatAt);
+  return Number.isFinite(at) && now - at <= windowDays * 24 * 60 * 60 * 1000;
+}
+
+export interface AgentLeadCount extends RoutedAgent {
+  leads: number;
+  recentLeads: number;
+}
+
+export interface AdLeadBreakdown {
+  agents: AgentLeadCount[];
+  unassigned: number;
+  unassignedRecent: number;
+  total: number;
+}
+
+export interface AdAgentLeadRow {
+  ad_id: string;
+  agent_id: string | null;
+  leads: number | string;
+  recent_leads: number | string;
+}
+
+/** Groups "ad → agent → lead count" rows per ad, busiest agent first. */
+export function buildAdLeadBreakdown(rows: AdAgentLeadRow[], members: TeamMember[]): Map<string, AdLeadBreakdown> {
+  const map = new Map<string, AdLeadBreakdown>();
+  for (const row of rows) {
+    const entry = map.get(row.ad_id) || { agents: [], unassigned: 0, unassignedRecent: 0, total: 0 };
+    const leads = Number(row.leads) || 0;
+    const recent = Number(row.recent_leads) || 0;
+    entry.total += leads;
+    if (!row.agent_id) {
+      entry.unassigned += leads;
+      entry.unassignedRecent += recent;
+    } else {
+      const member = findMember(members, row.agent_id);
+      entry.agents.push({
+        id: row.agent_id,
+        name: member ? memberName(member) : 'Former agent',
+        avatarUrl: member?.profile?.avatar_url,
+        leads,
+        recentLeads: recent,
+      });
+    }
+    map.set(row.ad_id, entry);
+  }
+  map.forEach(e => e.agents.sort((a, b) => b.leads - a.leads || a.name.localeCompare(b.name)));
+  return map;
+}

@@ -19740,6 +19740,16 @@ export type Database = {
         Returns: Json
       }
       generate_contact_ticket_id: { Args: never; Returns: string }
+      get_ad_agent_lead_breakdown: {
+        Args: { _since?: string; _tenant_id: string }
+        Returns: {
+          ad_id: string
+          agent_id: string
+          last_lead_at: string
+          leads: number
+          recent_leads: number
+        }[]
+      }
       get_app_secret: { Args: { p_key: string }; Returns: string }
       get_broadcast_recipient_limit: {
         Args: { p_tenant_id: string }

@@ -117,23 +117,74 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const campaigns = campaignsData.data || [];
+        const campaigns = [...(campaignsData.data || [])];
+        // Follow Meta's paging so accounts with more than 100 campaigns are fully synced.
+        let nextCampaignsUrl: string | null = campaignsData.paging?.next || null;
+        for (let pageNo = 0; nextCampaignsUrl && pageNo < 9; pageNo++) {
+          try {
+            const more: any = await fetchMeta(nextCampaignsUrl).then(r => r.json());
+            if (more?.error) break;
+            campaigns.push(...(more?.data || []));
+            nextCampaignsUrl = more?.paging?.next || null;
+          } catch { break; }
+        }
         console.log(`Found ${campaigns.length} campaigns for ${metaAccountId} (currency: ${accountCurrency})`);
 
-        // Fetch insights for each campaign (last 30 days), a few at a time
+        // All ads in the account in a few paged calls (id → live/paused status for routing).
+        const adsByCampaign = new Map<string, any[]>();
+        let adsFetchError: string | null = null;
+        try {
+          let adsPageUrl: string | null = `https://graph.facebook.com/${GRAPH_API_VERSION}/${metaAccountId}/ads?fields=id,name,status,effective_status,adset_id,campaign_id,adset{name}&limit=200&access_token=${accessToken}`;
+          for (let pageNo = 0; adsPageUrl && pageNo < 15; pageNo++) {
+            const page: any = await fetchMeta(adsPageUrl).then(r => r.json());
+            if (page?.error) { adsFetchError = page.error.message || 'unknown'; break; }
+            for (const ad of page?.data || []) {
+              if (!ad.campaign_id) continue;
+              adsByCampaign.set(ad.campaign_id, [...(adsByCampaign.get(ad.campaign_id) || []), ad]);
+            }
+            adsPageUrl = page?.paging?.next || null;
+          }
+        } catch (e) {
+          adsFetchError = e instanceof Error ? e.message : String(e);
+        }
+        if (adsFetchError) console.warn(`Account-level ads fetch failed for ${metaAccountId}: ${adsFetchError}`);
+        console.log(`Found ads for ${adsByCampaign.size} campaigns in ${metaAccountId}`);
+
+        // Last-30-day numbers for every campaign in a few paged calls (not one call per campaign,
+        // which hits Meta's request limit on big accounts).
+        const insightByCampaign = new Map<string, any>();
+        let insightsFetchError: string | null = null;
+        try {
+          let insightsPageUrl: string | null = `https://graph.facebook.com/${GRAPH_API_VERSION}/${metaAccountId}/insights?level=campaign&fields=campaign_id,impressions,clicks,spend,ctr,cpc,actions&date_preset=last_30d&limit=500&access_token=${accessToken}`;
+          for (let pageNo = 0; insightsPageUrl && pageNo < 10; pageNo++) {
+            const page: any = await fetchMeta(insightsPageUrl).then(r => r.json());
+            if (page?.error) { insightsFetchError = page.error.message || 'unknown'; break; }
+            for (const row of page?.data || []) if (row.campaign_id) insightByCampaign.set(row.campaign_id, row);
+            insightsPageUrl = page?.paging?.next || null;
+          }
+        } catch (e) {
+          insightsFetchError = e instanceof Error ? e.message : String(e);
+        }
+        if (insightsFetchError) console.warn(`Account-level insights fetch failed for ${metaAccountId}: ${insightsFetchError}`);
+
+        // When Meta refuses (e.g. request limit), keep what we saved last time instead of blanking it.
+        const previousByCampaign = new Map<string, any>();
+        if (adsFetchError || insightsFetchError) {
+          const { data: prevRows } = await supabase
+            .from('smeksh_meta_ad_campaigns')
+            .select('meta_campaign_id, raw_meta_data')
+            .eq('ad_account_id', account.id);
+          (prevRows || []).forEach((r: any) => previousByCampaign.set(r.meta_campaign_id, r.raw_meta_data || {}));
+        }
+
         await runPool(campaigns, CAMPAIGN_CONCURRENCY, async (campaign: any) => {
           try {
-            const insightsUrl = `https://graph.facebook.com/${GRAPH_API_VERSION}/${campaign.id}/insights?fields=impressions,clicks,spend,ctr,cpc,actions&date_preset=last_30d&access_token=${accessToken}`;
-            const adsUrl = `https://graph.facebook.com/${GRAPH_API_VERSION}/${campaign.id}/ads?fields=id,name,status,effective_status,adset_id,adset{name}&limit=100&access_token=${accessToken}`;
-            const [insightsData, adsResult] = await Promise.all([
-              fetchMeta(insightsUrl).then(r => r.json()),
-              fetchMeta(adsUrl).then(r => r.json()).catch((adFetchErr) => {
-                console.warn(`Could not fetch ads for campaign ${campaign.id}:`, adFetchErr);
-                return null;
-              }),
-            ]);
+            const previous = previousByCampaign.get(campaign.id) || {};
+            const adsResult = adsFetchError
+              ? { data: (previous.ads || []).map((a: any) => ({ ...a, adset: a.adset_name ? { name: a.adset_name } : undefined })) }
+              : { data: adsByCampaign.get(campaign.id) || [] };
 
-            const insight = insightsData.data?.[0] || {};
+            const insight = insightsFetchError ? (previous.insight || {}) : (insightByCampaign.get(campaign.id) || {});
             const actions = insight.actions || [];
             const leadsAction = actions.find((a: any) => a.action_type === 'lead' || a.action_type === 'onsite_conversion.lead_grouped');
             const messagingAction = actions.find((a: any) =>
@@ -162,6 +213,7 @@ Deno.serve(async (req) => {
             let adSummaries: Array<{ id: string; name: string; status: string; effective_status: string | null; adset_id: string | null; adset_name: string | null }> = [];
             try {
               const adsData = adsResult;
+              if (adsData?.error) console.warn(`Ads fetch error for campaign ${campaign.id}: ${adsData.error.message}`);
               if (adsData?.data) {
                 adIds = adsData.data.map((ad: any) => ad.id);
                 adsetIds = [...new Set(adsData.data.map((ad: any) => ad.adset_id).filter(Boolean))];
