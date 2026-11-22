@@ -88,6 +88,7 @@ const metaAdsMenuItems: MenuItem[] = [
 
 const teamMenuItems: MenuItem[] = [
   { title: 'Overview', url: '/team', icon: Users, key: 'team-overview', docUrl: '/help/team' },
+  { title: 'Agent performance', url: '/team/performance', icon: BarChart3, key: 'team-performance', isNew: true, docUrl: '/help/team' },
   { title: 'Members', url: '/team/members', icon: Users, key: 'team-members', docUrl: '/help/team' },
   { title: 'Roles', url: '/team/roles', icon: Shield, key: 'team-roles', docUrl: '/help/team' },
   { title: 'Groups', url: '/team/groups', icon: UsersRound, key: 'team-groups', docUrl: '/help/team' },

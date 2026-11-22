@@ -50,6 +50,20 @@
       "when": 1795372941542,
       "tag": "0006_ad_agent_lead_breakdown",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795374582544,
+      "tag": "0007_agent_performance_reporting",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795374932941,
+      "tag": "0008_agent_performance_drilldown_names",
+      "breakpoints": true
     }
   ]
 }

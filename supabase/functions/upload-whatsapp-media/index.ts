@@ -263,6 +263,7 @@ Deno.serve(async (req) => {
             media_size_bytes: file.size,
             media_mime_type: baseType,
             status: 'pending',
+            sent_by: user.id,
           })
           .select()
           .single();

@@ -360,6 +360,7 @@ Deno.serve(async (req) => {
         text: `Template: ${template_name}`,
         metadata: { template_name, template_language, components },
         status: 'pending',
+        sent_by: user.id,
       })
       .select()
       .single();

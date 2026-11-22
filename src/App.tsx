@@ -202,6 +202,7 @@ const TeamGroups = lazyWithRetry(() => import("./pages/team/TeamGroups"));
 const TeamRouting = lazyWithRetry(() => import("./pages/team/TeamRouting"));
 const TeamSLA = lazyWithRetry(() => import("./pages/team/TeamSLA"));
 const TeamAudit = lazyWithRetry(() => import("./pages/team/TeamAudit"));
+const TeamPerformance = lazyWithRetry(() => import("./pages/team/TeamPerformance"));
 
 const queryClient = new QueryClient();
 
@@ -343,6 +344,7 @@ const App = () => (
                     <Route path="/team/routing" element={<TeamRouting />} />
                     <Route path="/team/sla" element={<TeamSLA />} />
                     <Route path="/team/audit" element={<TeamAudit />} />
+                    <Route path="/team/performance" element={<TeamPerformance />} />
                     <Route path="/meta-ads" element={<RequirePermission anyOf={META_ADS_VIEW_PERMISSIONS}><MetaAdsOverview /></RequirePermission>} />
                     <Route path="/meta-ads/setup" element={<RequirePermission anyOf={META_ADS_CONNECT_PERMISSIONS}><MetaAdsSetup /></RequirePermission>} />
                     <Route path="/lead-forms" element={<RequirePermission anyOf={META_ADS_VIEW_PERMISSIONS}><LeadFormsPage /></RequirePermission>} />

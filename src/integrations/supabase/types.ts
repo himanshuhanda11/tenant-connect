@@ -8555,6 +8555,8 @@ export type Database = {
           read_at: string | null
           revoked_at: string | null
           sent_at: string | null
+          sent_by: string | null
+          sent_by_inferred: boolean
           source: string
           status: Database["public"]["Enums"]["message_status"]
           tenant_id: string
@@ -8589,6 +8591,8 @@ export type Database = {
           read_at?: string | null
           revoked_at?: string | null
           sent_at?: string | null
+          sent_by?: string | null
+          sent_by_inferred?: boolean
           source?: string
           status?: Database["public"]["Enums"]["message_status"]
           tenant_id: string
@@ -8623,6 +8627,8 @@ export type Database = {
           read_at?: string | null
           revoked_at?: string | null
           sent_at?: string | null
+          sent_by?: string | null
+          sent_by_inferred?: boolean
           source?: string
           status?: Database["public"]["Enums"]["message_status"]
           tenant_id?: string
@@ -8637,6 +8643,20 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "platform_account_health"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "messages_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -19349,6 +19369,23 @@ export type Database = {
       }
     }
     Functions: {
+      _agent_perf_rows: {
+        Args: {
+          p_end: string
+          p_include_snapshot?: boolean
+          p_phone_number_id?: string
+          p_start: string
+          p_tenant_id: string
+        }
+        Returns: {
+          agent_id: string
+          at: string
+          conversation_id: string
+          metric: string
+          n: number
+          seconds: number
+        }[]
+      }
       add_message_credits: {
         Args: {
           p_amount: number
@@ -19380,6 +19417,48 @@ export type Database = {
             }
             Returns: Json
           }
+      agent_performance_conversations: {
+        Args: {
+          p_agent_id?: string
+          p_end: string
+          p_limit?: number
+          p_metric: string
+          p_phone_number_id?: string
+          p_start: string
+          p_tenant_id: string
+          p_unassigned_only?: boolean
+        }
+        Returns: {
+          agent_messages: number
+          assigned_at: string
+          assigned_name: string
+          assigned_to: string
+          contact_id: string
+          contact_name: string
+          contact_wa_id: string
+          conversation_id: string
+          created_at: string
+          credited_agent_id: string
+          credited_agent_name: string
+          first_response_seconds: number
+          last_inbound_at: string
+          last_message_at: string
+          phone_number_id: string
+          status: string
+        }[]
+      }
+      agent_performance_report: {
+        Args: {
+          p_agent_id?: string
+          p_end: string
+          p_phone_number_id?: string
+          p_start: string
+          p_tenant_id: string
+          p_today_start?: string
+          p_yesterday_start?: string
+        }
+        Returns: Json
+      }
       agent_performance_stats: {
         Args: { p_days?: number; p_tenant_id: string }
         Returns: {
@@ -19471,6 +19550,10 @@ export type Database = {
           sample_ids: string[]
           total: number
         }[]
+      }
+      can_view_all_agent_reports: {
+        Args: { p_tenant_id: string }
+        Returns: boolean
       }
       cancel_conversation_jobs: {
         Args: {
@@ -19654,6 +19737,14 @@ export type Database = {
           tenant_id: string
           wa_id: string
         }[]
+      }
+      conversation_event_agent: {
+        Args: { p_details: Json; p_to: string }
+        Returns: string
+      }
+      conversation_owner_at: {
+        Args: { p_at: string; p_conversation_id: string }
+        Returns: string
       }
       country_code_from_phone: { Args: { phone: string }; Returns: string }
       create_tenant_with_owner: {

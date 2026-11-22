@@ -202,6 +202,7 @@ Deno.serve(async (req) => {
         text: text || null,
         media_url: media_url || null,
         status: 'pending',
+        sent_by: user.id,
       })
       .select()
       .single();

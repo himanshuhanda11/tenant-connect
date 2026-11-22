@@ -18,6 +18,7 @@ const teamRoutes = [
   { path: '/team/routing', label: 'Routing & Assignment' },
   { path: '/team/sla', label: 'Working Hours & SLA' },
   { path: '/team/audit', label: 'Audit Logs' },
+  { path: '/team/performance', label: 'Agent performance' },
 ];
 
 interface TeamBreadcrumbProps {

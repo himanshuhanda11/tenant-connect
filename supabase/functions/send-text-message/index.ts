@@ -240,6 +240,7 @@ Deno.serve(async (req) => {
         text: text || null,
         media_url: media_url || null,
         status: 'pending',
+        sent_by: userId,
       }).select('id').single(),
       fetch(`${WHATSAPP_API_BASE}/${phoneNumber.phone_number_id}/messages`, {
         method: 'POST',

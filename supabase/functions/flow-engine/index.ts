@@ -111,7 +111,7 @@ async function sendInteractive(
         await supabase.from("messages").insert({
           tenant_id: tenantId, conversation_id: conv.id, direction: "outbound",
           type: "interactive", text: displayText, wamid, status: res.ok ? "sent" : "failed",
-          sent_at: new Date().toISOString(),
+          sent_at: new Date().toISOString(), is_auto_reply: true,
         });
       }
     }
