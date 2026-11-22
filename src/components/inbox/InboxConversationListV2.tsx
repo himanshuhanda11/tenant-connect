@@ -300,7 +300,7 @@ export function InboxConversationListV2({
                 <ChevronDown className="h-3 w-3 flex-shrink-0 opacity-60" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="max-h-80 w-52 overflow-y-auto">
+            <DropdownMenuContent align="start" className="max-h-[min(20rem,var(--radix-dropdown-menu-content-available-height))] w-52 overflow-y-auto overscroll-contain">
               <DropdownMenuLabel className="text-xs">Assigned to</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {(Object.keys(OWNER_LABELS) as InboxListFilters['owner'][]).map(o => (

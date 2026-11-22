@@ -83,7 +83,13 @@ export default function InboxPage() {
     let touchStartY = 0;
     const getScrollable = (target: EventTarget | null) => {
       if (!(target instanceof Element)) return null;
-      return target.closest<HTMLElement>('[data-scroll-lock-allow], [data-radix-scroll-area-viewport]');
+      const marked = target.closest<HTMLElement>('[data-scroll-lock-allow], [data-radix-scroll-area-viewport]');
+      // Any other element that scrolls on its own (filter menus, pickers, dialogs) may scroll too.
+      for (let el: Element | null = target; el && el !== marked && el !== document.body; el = el.parentElement) {
+        const { overflowY } = window.getComputedStyle(el);
+        if ((overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight + 1) return el as HTMLElement;
+      }
+      return marked;
     };
     const isScrollable = (el: HTMLElement) => el.scrollHeight > el.clientHeight + 1;
     const stopScrollChain = (el: HTMLElement | null, deltaY: number, event: Event) => {
