@@ -30,6 +30,8 @@ import { useWorkspaceTimezone } from '@/hooks/useWorkspaceTimezone';
 import { useAgentDisplayNames } from '@/hooks/useAgentDisplayNames';
 import { formatInZone, startOfZonedDay } from '@/lib/workspaceTime';
 import { CRMStatusBadge } from './CRMStatusBadge';
+import { InboxWorkSummary } from './InboxWorkSummary';
+import { isChatReplied } from '@/lib/inboxReplyState';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -276,6 +278,9 @@ export function InboxConversationListV2({
           <InboxSortMenu value={timeFilter.sort} onChange={(sort) => onTimeFilterChange?.({ ...timeFilter, sort })} />
         </div>
 
+        {/* New chats / replied / waiting for the picked period */}
+        <InboxWorkSummary timeFilter={timeFilter} timeZone={timeZone} />
+
         {/* Exact count of what's shown */}
         <div className="flex items-center justify-between gap-2 rounded-lg bg-muted/40 px-2.5 py-1.5">
           <p className="min-w-0 text-xs text-muted-foreground" aria-live="polite">
@@ -410,6 +415,8 @@ function ConversationCard({
     if (n) assignLabel = `Assigned to ${n}`;
   }
 
+  const replied = isChatReplied(conversation);
+
   // Agent name for the badge
   const agentDisplayName = conversation.assigned_to === currentUserId
     ? 'You'
@@ -419,15 +426,16 @@ function ConversationCard({
     <div
       onClick={() => onSelect(conversation.id)}
       className={cn(
-        "group rounded-xl px-3 py-3 cursor-pointer transition-all duration-150 overflow-hidden",
-        "border border-border/30 hover:border-border/60",
-        "hover:shadow-sm",
-        isSelected
-          ? "bg-primary/5 border-primary/30 shadow-sm ring-1 ring-primary/10"
-          : "bg-card hover:bg-muted/30",
-        hasUnread && !isSelected && "bg-primary/[0.02] border-primary/20"
+        "group relative rounded-xl px-3 py-3 cursor-pointer transition-all duration-150 overflow-hidden border hover:shadow-sm",
+        // Green = an agent answered the customer's latest message; white = still waiting for a reply.
+        replied
+          ? "bg-success/10 border-success/40 hover:bg-success/15"
+          : "bg-card border-border/40 hover:border-border/70 hover:bg-muted/30",
+        isSelected && "ring-2 ring-primary/40 shadow-sm"
       )}
+      aria-label={replied ? 'Replied chat' : 'Waiting for reply'}
     >
+      {replied && <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-success" />}
       <div className="flex gap-3">
         {/* Avatar */}
         <div className="relative flex-shrink-0 pt-0.5">
@@ -481,6 +489,9 @@ function ConversationCard({
 
           <p className="mt-0.5 truncate text-[10.5px] text-muted-foreground/80 tabular-nums">
             Received {formatInZone(conversation.first_message_at || conversation.created_at, timeZone, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}
+            {replied && conversation.last_agent_reply_at && (
+              <span className="font-medium text-success"> · Replied {formatInZone(conversation.last_agent_reply_at, timeZone, { hour: 'numeric', minute: '2-digit' })}</span>
+            )}
           </p>
 
           {/* Row 3: CRM Status + Assignment + Agent */}
