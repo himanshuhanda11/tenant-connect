@@ -17,7 +17,13 @@ const PERIOD_LABEL: Record<string, string> = {
  * (new + older) and chats still waiting, for the period picked in the date tabs
  * ("All" shows today). Agents see their own numbers; owners/admins see the team's.
  */
-export function InboxWorkSummary({ timeFilter, timeZone }: { timeFilter: InboxTimeFilterValue; timeZone: string }) {
+export function InboxWorkSummary({ timeFilter, timeZone, agentId = null, agentLabel = null }: {
+  timeFilter: InboxTimeFilterValue;
+  timeZone: string;
+  /** Show one agent's numbers (owners/admins picking an agent in the filter) */
+  agentId?: string | null;
+  agentLabel?: string | null;
+}) {
   const { currentTenant } = useTenant();
   const period = useMemo(() => {
     const now = new Date();
@@ -34,12 +40,12 @@ export function InboxWorkSummary({ timeFilter, timeZone }: { timeFilter: InboxTi
     end: period.end,
     live: period.live,
     phoneNumberId: null,
-    agentId: null,
+    agentId,
     timeZone,
   });
 
   const t = data?.totals;
-  const team = !!data?.can_view_all;
+  const team = !!data?.can_view_all && !agentId;
   const n = (v: number | undefined) => (v == null ? '–' : v.toLocaleString('en-US'));
   const label = PERIOD_LABEL[timeFilter.preset === 'custom' && !timeFilter.custom ? 'today' : timeFilter.preset];
 
@@ -47,7 +53,7 @@ export function InboxWorkSummary({ timeFilter, timeZone }: { timeFilter: InboxTi
     <div className="rounded-lg border border-border/60 bg-card">
       <div className="flex items-center justify-between px-2.5 pt-2">
         <p className="text-[11px] font-semibold text-foreground">
-          {team ? 'Team work' : 'My work'} <span className="font-normal text-muted-foreground">· {label}</span>
+          {agentId && agentLabel ? `${agentLabel}'s work` : team ? 'Team work' : 'My work'} <span className="font-normal text-muted-foreground">· {label}</span>
         </p>
         {team && (
           <Link to="/team/performance" className="flex items-center text-[11px] font-medium text-primary hover:underline">
@@ -65,7 +71,7 @@ export function InboxWorkSummary({ timeFilter, timeZone }: { timeFilter: InboxTi
         />
         {team
           ? <Stat label="Unassigned" value={n(t?.unassigned)} sub="right now" />
-          : <Stat label="Waiting" value={n(t?.pending)} sub="need your reply" tone="warning" />}
+          : <Stat label="Waiting" value={n(t?.pending)} sub={agentId ? "all dates" : "need your reply"} tone="warning" />}
       </div>
     </div>
   );

@@ -20114,6 +20114,10 @@ export type Database = {
       }
       my_agent_tenant_ids: { Args: never; Returns: string[] }
       my_tenant_ids: { Args: never; Returns: string[] }
+      needs_reply: {
+        Args: { c: Database["public"]["Tables"]["conversations"]["Row"] }
+        Returns: boolean
+      }
       next_invoice_number: { Args: never; Returns: string }
       open_conversation: {
         Args: {

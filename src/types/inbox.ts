@@ -227,6 +227,10 @@ export interface InboxFilters {
   crmStatus?: string;
   /** Assigned / unassigned picked in the list filter bar */
   owner?: 'assigned' | 'unassigned';
+  /** Waiting for an agent reply (white) or replied (green), see isChatReplied */
+  reply?: 'waiting' | 'replied';
+  /** Only chats assigned to this agent (user id) */
+  agentId?: string;
 }
 
 export type InboxDateField = 'created_at' | 'last_inbound_at' | 'last_message_at';

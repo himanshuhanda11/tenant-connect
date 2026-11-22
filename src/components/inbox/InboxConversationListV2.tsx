@@ -1,4 +1,7 @@
 import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -106,8 +109,18 @@ export interface InboxListFilters {
   search: string;
   crmStatus: StatusFilter;
   owner: 'all' | 'unassigned' | 'assigned';
+  /** White (waiting for an agent reply) or green (replied) chats */
+  reply: 'all' | 'waiting' | 'replied';
+  /** One agent's chats (user id), picked by owners/admins/managers */
+  agentId: string | null;
 }
-export const EMPTY_LIST_FILTERS: InboxListFilters = { search: '', crmStatus: 'all', owner: 'all' };
+export const EMPTY_LIST_FILTERS: InboxListFilters = { search: '', crmStatus: 'all', owner: 'all', reply: 'all', agentId: null };
+
+const REPLY_OPTIONS: { value: InboxListFilters['reply']; label: string; hint: string }[] = [
+  { value: 'all', label: 'Any reply', hint: 'Every chat, green and white' },
+  { value: 'waiting', label: 'Not replied', hint: 'White chats: customer is waiting for an agent' },
+  { value: 'replied', label: 'Replied', hint: 'Green chats: an agent answered the last message' },
+];
 
 const STATUS_LABELS: Record<Exclude<StatusFilter, 'all'>, string> = {
   new: 'New', assigned: 'Assigned', contacted: 'Contacted',
@@ -146,6 +159,28 @@ export function InboxConversationListV2({
   const setList = (patch: Partial<InboxListFilters>) => onListFiltersChange?.({ ...listFilters, ...patch });
   const statusFilter = listFilters.crmStatus;
   const assignmentFilter = listFilters.owner;
+  const replyFilter = listFilters.reply;
+  const { currentTenant, currentRole } = useTenant();
+  const canPickAgent = !!currentRole && currentRole !== 'agent';
+  const { data: teamAgents = [] } = useQuery({
+    queryKey: ['inbox-filter-agents', currentTenant?.id],
+    enabled: !!currentTenant?.id && canPickAgent,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('agents')
+        .select('user_id, display_name, is_active')
+        .eq('tenant_id', currentTenant!.id);
+      return (data ?? [])
+        .filter((a) => a.user_id && a.is_active !== false)
+        .map((a) => ({ id: a.user_id as string, name: agentName(a.user_id, a.display_name) || 'Unnamed' }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+    },
+  });
+  const pickedAgentName = listFilters.agentId
+    ? teamAgents.find((a) => a.id === listFilters.agentId)?.name || agentName(listFilters.agentId) || 'Agent'
+    : null;
+  const agentBtnLabel = pickedAgentName || (assignmentFilter === 'all' ? 'Any agent' : OWNER_LABELS[assignmentFilter]);
   const filteredConversations = conversations;
 
   const PAGE_SIZE = 25;
@@ -179,7 +214,7 @@ export function InboxConversationListV2({
     return fallback;
   };
   const totalUnread = conversations.reduce((sum, c) => sum + c.unread_count, 0);
-  const anyFilter = !!listFilters.search || statusFilter !== 'all' || assignmentFilter !== 'all' || timeFilter.preset !== 'all';
+  const anyFilter = !!listFilters.search || statusFilter !== 'all' || assignmentFilter !== 'all' || replyFilter !== 'all' || !!listFilters.agentId || timeFilter.preset !== 'all';
   const clearAll = () => {
     onListFiltersChange?.(EMPTY_LIST_FILTERS);
     onTimeFilterChange?.({ ...timeFilter, preset: 'all', custom: undefined });
@@ -260,17 +295,50 @@ export function InboxConversationListV2({
           </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button type="button" className={filterBtn(assignmentFilter !== 'all')} aria-label="Filter by assigned agent">
-                <span className="truncate">{assignmentFilter === 'all' ? 'Any agent' : OWNER_LABELS[assignmentFilter]}</span>
+              <button type="button" className={cn(filterBtn(assignmentFilter !== 'all' || !!listFilters.agentId), 'max-w-[9rem]')} aria-label="Filter by assigned agent">
+                <span className="truncate">{agentBtnLabel}</span>
                 <ChevronDown className="h-3 w-3 flex-shrink-0 opacity-60" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-44">
+            <DropdownMenuContent align="start" className="max-h-80 w-52 overflow-y-auto">
               <DropdownMenuLabel className="text-xs">Assigned to</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {(Object.keys(OWNER_LABELS) as InboxListFilters['owner'][]).map(o => (
-                <DropdownMenuItem key={o} onClick={() => setList({ owner: o })}>
-                  <Check className={cn('mr-2 h-3.5 w-3.5', assignmentFilter !== o && 'invisible')} />{o === 'all' ? 'Any agent' : OWNER_LABELS[o]}
+                <DropdownMenuItem key={o} onClick={() => setList({ owner: o, agentId: null })}>
+                  <Check className={cn('mr-2 h-3.5 w-3.5', (assignmentFilter !== o || !!listFilters.agentId) && 'invisible')} />{o === 'all' ? 'Any agent' : OWNER_LABELS[o]}
+                </DropdownMenuItem>
+              ))}
+              {canPickAgent && teamAgents.length > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="text-xs">One agent</DropdownMenuLabel>
+                  {teamAgents.map(a => (
+                    <DropdownMenuItem key={a.id} onClick={() => setList({ owner: 'all', agentId: a.id })}>
+                      <Check className={cn('mr-2 h-3.5 w-3.5', listFilters.agentId !== a.id && 'invisible')} /><span className="truncate">{a.name}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button type="button" className={filterBtn(replyFilter !== 'all')} aria-label="Filter by replied or not replied">
+                {replyFilter !== 'all' && <span aria-hidden className={cn('h-2 w-2 flex-shrink-0 rounded-full border', replyFilter === 'replied' ? 'border-success bg-success' : 'border-border bg-card')} />}
+                <span className="truncate">{REPLY_OPTIONS.find(r => r.value === replyFilter)?.label}</span>
+                <ChevronDown className="h-3 w-3 flex-shrink-0 opacity-60" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-60">
+              <DropdownMenuLabel className="text-xs">Agent reply</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {REPLY_OPTIONS.map(r => (
+                <DropdownMenuItem key={r.value} onClick={() => setList({ reply: r.value })} className="items-start">
+                  <Check className={cn('mr-2 mt-0.5 h-3.5 w-3.5 flex-shrink-0', replyFilter !== r.value && 'invisible')} />
+                  <span className="min-w-0">
+                    <span className="block text-sm">{r.label}</span>
+                    <span className="block text-[11px] text-muted-foreground">{r.hint}</span>
+                  </span>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -279,7 +347,7 @@ export function InboxConversationListV2({
         </div>
 
         {/* New chats / replied / waiting for the picked period */}
-        <InboxWorkSummary timeFilter={timeFilter} timeZone={timeZone} />
+        <InboxWorkSummary timeFilter={timeFilter} timeZone={timeZone} agentId={listFilters.agentId} agentLabel={pickedAgentName} />
 
         {/* Exact count of what's shown */}
         <div className="flex items-center justify-between gap-2 rounded-lg bg-muted/40 px-2.5 py-1.5">
@@ -289,7 +357,9 @@ export function InboxConversationListV2({
                 {(() => {
                   const d = describeInboxCount(total, timeFilter, timeZone, {
                     status: statusFilter !== 'all' ? STATUS_LABELS[statusFilter] : undefined,
-                    owner: assignmentFilter !== 'all' ? OWNER_LABELS[assignmentFilter] : undefined,
+                    owner: !listFilters.agentId && assignmentFilter !== 'all' ? OWNER_LABELS[assignmentFilter] : undefined,
+                    agent: pickedAgentName || undefined,
+                    reply: replyFilter !== 'all' ? replyFilter : undefined,
                     search: listFilters.search.trim() || undefined,
                   });
                   return (

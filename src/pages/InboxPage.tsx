@@ -168,9 +168,11 @@ export default function InboxPage() {
       search: debouncedSearch || undefined,
       crmStatus: listFilters.crmStatus !== 'all' ? listFilters.crmStatus : undefined,
       owner: listFilters.owner !== 'all' ? listFilters.owner : undefined,
+      reply: listFilters.reply !== 'all' ? listFilters.reply : undefined,
+      agentId: listFilters.agentId || undefined,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filters, timeFilter, timeZone, timeTick, debouncedSearch, listFilters.crmStatus, listFilters.owner],
+    [filters, timeFilter, timeZone, timeTick, debouncedSearch, listFilters.crmStatus, listFilters.owner, listFilters.reply, listFilters.agentId],
   );
   // How many chats to fetch; "Load more" raises it once the loaded ones are all shown.
   const [fetchLimit, setFetchLimit] = useState(INBOX_FETCH_STEP);

@@ -229,6 +229,10 @@ export function useInboxConversations(view: InboxView, filters: InboxFilters, cr
         }
         if (filters.owner === 'unassigned') q = q.is('assigned_to', null);
         else if (filters.owner === 'assigned') q = q.not('assigned_to', 'is', null);
+        if (filters.agentId) q = q.eq('assigned_to', filters.agentId);
+        // needs_reply is a computed field in the database (same rule as isChatReplied)
+        if (filters.reply === 'waiting') q = q.eq('needs_reply', true);
+        else if (filters.reply === 'replied') q = q.eq('needs_reply', false);
         if (searchContactIds) q = q.in('contact_id', searchContactIds.length ? searchContactIds : ['00000000-0000-0000-0000-000000000000']);
         // Date range (exact UTC instants computed in the workspace timezone)
         if (filters.dateFrom) q = q.gte(dateField, filters.dateFrom);

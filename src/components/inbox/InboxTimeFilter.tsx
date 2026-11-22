@@ -46,7 +46,7 @@ export function describeInboxCount(
   count: number,
   v: InboxTimeFilterValue,
   timeZone: string,
-  extra: { status?: string; owner?: string; search?: string } = {},
+  extra: { status?: string; owner?: string; agent?: string; reply?: 'waiting' | 'replied'; search?: string } = {},
 ): { headline: string; details: string[] } {
   const headline = `${count.toLocaleString('en-US')} ${count === 1 ? 'chat' : 'chats'}`;
   const byReceived = inboxSortOrder(v.sort).column === 'created_at';
@@ -65,7 +65,9 @@ export function describeInboxCount(
     } else period = when[v.preset];
     if (period) details.push(byReceived ? `received ${period}` : `last message ${period}`);
   }
+  if (extra.reply) details.push(extra.reply === 'waiting' ? 'waiting for reply' : 'replied');
   if (extra.status) details.push(`status ${extra.status}`);
+  if (extra.agent) details.push(`assigned to ${extra.agent}`);
   if (extra.owner) details.push(extra.owner.toLowerCase());
   if (extra.search) details.push(`matching "${extra.search}"`);
   return { headline, details };

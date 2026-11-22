@@ -40,4 +40,9 @@ describe('inbox date filter', () => {
     expect(describeInboxCount(29479, { preset: 'all', sort: 'latest_activity' }, 'Asia/Dubai'))
       .toEqual({ headline: '29,479 chats', details: [] });
   });
+
+  it('summary names the not-replied and agent filters', () => {
+    expect(describeInboxCount(12, { preset: 'yesterday', sort: 'newest_received' }, 'Asia/Dubai', { reply: 'waiting', agent: 'Mae' }))
+      .toEqual({ headline: '12 chats', details: ['received yesterday', 'waiting for reply', 'assigned to Mae'] });
+  });
 });
