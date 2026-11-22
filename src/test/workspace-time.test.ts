@@ -51,3 +51,19 @@ describe('workspace timezone date ranges', () => {
     expect(timeZoneLabel('Asia/Dubai', NOW)).toBe('Asia/Dubai (UTC+4)');
   });
 });
+
+import { suggestTimezoneFromPhone } from '@/lib/workspaceTime';
+
+describe('timezone suggested from the WhatsApp number', () => {
+  it('UAE +971 → Asia/Dubai, India +91 → Asia/Kolkata (any formatting)', () => {
+    expect(suggestTimezoneFromPhone('+971 58 551 6542')).toBe('Asia/Dubai');
+    expect(suggestTimezoneFromPhone('917010305004')).toBe('Asia/Kolkata');
+    expect(suggestTimezoneFromPhone('+966 53 397 2016')).toBe('Asia/Riyadh');
+  });
+
+  it('ignores Meta +1 555 test numbers and unknown codes', () => {
+    expect(suggestTimezoneFromPhone('+1 555-919-4226')).toBeNull();
+    expect(suggestTimezoneFromPhone('+57 315 1454652')).toBeNull();
+    expect(suggestTimezoneFromPhone('')).toBeNull();
+  });
+});

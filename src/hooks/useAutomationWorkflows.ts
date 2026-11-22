@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
+import { isValidTimeZone, startOfZonedDay } from '@/lib/workspaceTime';
 import { 
   AutomationWorkflow, 
   AutomationNode, 
@@ -50,8 +51,8 @@ export function useAutomationWorkflows() {
       const workflowsWithStats: WorkflowWithRelations[] = await Promise.all(
         (workflowsData || []).map(async (workflow) => {
           // Get run counts
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
+          // Runs "today" = since midnight in the workspace time zone
+          const today = startOfZonedDay(new Date(), isValidTimeZone(currentTenant?.timezone) ? currentTenant!.timezone : 'UTC');
           const sevenDaysAgo = new Date();
           sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 

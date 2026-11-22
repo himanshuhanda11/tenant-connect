@@ -20,6 +20,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ContactAdminDialog } from '@/components/settings/ContactAdminDialog';
 import { uploadWhatsAppProfilePhoto } from '@/lib/whatsappProfilePhoto';
+import { TimezonePicker } from '@/components/settings/TimezonePicker';
+import { suggestTimezoneFromPhone, isValidTimeZone, formatInZone } from '@/lib/workspaceTime';
 
 
 const workspaceSchema = z.object({
@@ -34,7 +36,6 @@ const workspaceSchema = z.object({
 type WorkspaceFormData = z.infer<typeof workspaceSchema>;
 
 const industries = ['E-commerce', 'Healthcare', 'Education', 'Real Estate', 'Finance', 'Travel', 'Food & Beverage', 'Retail', 'Technology', 'Automotive', 'Hospitality', 'Other'];
-const timezones = ['UTC', 'America/New_York', 'America/Los_Angeles', 'America/Chicago', 'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Asia/Dubai', 'Asia/Singapore', 'Asia/Tokyo', 'Asia/Kolkata', 'Australia/Sydney'];
 const languages = ['English', 'Spanish', 'French', 'German', 'Portuguese', 'Arabic', 'Hindi', 'Chinese', 'Japanese', 'Korean'];
 
 const verticals = [
@@ -67,7 +68,20 @@ export function WorkspaceSettings() {
   const canEdit = currentRole === 'owner' || currentRole === 'admin';
   const isOwner = currentRole === 'owner';
 
-  const primaryPhone = phoneNumbers.length > 0 ? phoneNumbers[0] : null;
+  const primaryPhone = phoneNumbers.find((p) => String(p.status) !== 'disconnected') ?? (phoneNumbers.length > 0 ? phoneNumbers[0] : null);
+  const suggestedTz = suggestTimezoneFromPhone(primaryPhone?.phone_e164);
+  // 'auto' = follows the WhatsApp number; 'manual' = chosen by an admin
+  const [tzSource, setTzSource] = useState<'auto' | 'manual'>('auto');
+  const [savedTz, setSavedTz] = useState<string>('UTC');
+  useEffect(() => {
+    if (!currentTenant?.id) return;
+    supabase.from('tenants').select('timezone, timezone_source').eq('id', currentTenant.id).maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        setTzSource(data.timezone_source === 'manual' ? 'manual' : 'auto');
+        setSavedTz(isValidTimeZone(data.timezone) ? data.timezone : 'UTC');
+      });
+  }, [currentTenant?.id, currentTenant?.timezone]);
 
   const form = useForm<WorkspaceFormData>({
     resolver: zodResolver(workspaceSchema),
@@ -137,11 +151,16 @@ export function WorkspaceSettings() {
     if (!currentTenant) return;
     setSaving(true);
     try {
+      const tz = isValidTimeZone(data.timezone) ? data.timezone : 'UTC';
+      // Picking the number's suggestion keeps the time zone automatic; anything else is an admin override.
+      const source: 'auto' | 'manual' = tz === savedTz ? tzSource : (suggestedTz && tz === suggestedTz ? 'auto' : 'manual');
       const { error } = await supabase
         .from('tenants')
-        .update({ name: data.name, business_category: data.industry || null, timezone: data.timezone || 'UTC' } as any)
+        .update({ name: data.name, business_category: data.industry || null, timezone: tz, timezone_source: source })
         .eq('id', currentTenant.id);
       if (error) throw error;
+      setSavedTz(tz);
+      setTzSource(source);
       toast.success('Workspace updated successfully');
       refreshTenants();
     } catch (error) {
@@ -342,13 +361,30 @@ export function WorkspaceSettings() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Default Timezone</Label>
-                    <Select value={form.watch('timezone')} onValueChange={(v) => form.setValue('timezone', v)} disabled={!canEdit}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {timezones.map((tz) => <SelectItem key={tz} value={tz}>{tz}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <Label>Workspace time zone</Label>
+                    <TimezonePicker
+                      value={form.watch('timezone') || 'UTC'}
+                      onChange={(v) => form.setValue('timezone', v, { shouldDirty: true })}
+                      disabled={!canEdit}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Used for every date in reports, the inbox and “Today” filters — not the time on this device.
+                      {' '}Now: {formatInZone(new Date(), form.watch('timezone') || 'UTC', { weekday: 'short', hour: 'numeric', minute: '2-digit' })}.
+                      {' '}{tzSource === 'auto'
+                        ? (suggestedTz ? `Set automatically from your WhatsApp number ${primaryPhone?.phone_e164 ?? ''}.` : 'Set automatically when a WhatsApp number connects.')
+                        : 'Chosen by an admin.'}
+                    </p>
+                    {canEdit && suggestedTz && form.watch('timezone') !== suggestedTz && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => form.setValue('timezone', suggestedTz, { shouldDirty: true })}
+                      >
+                        Use {suggestedTz} from your WhatsApp number
+                      </Button>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label>Default Language</Label>

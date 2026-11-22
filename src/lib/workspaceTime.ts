@@ -156,3 +156,35 @@ export function formatDurationSeconds(seconds: number | null | undefined): strin
   const d = Math.floor(h / 24);
   return h % 24 ? `${d}d ${h % 24}h` : `${d}d`;
 }
+
+// Country calling code → IANA timezone. Mirrors the database function
+// `detect_timezone_from_phone` (longest codes first).
+const CALLING_CODE_TIMEZONES: [string, string][] = [
+  ['971', 'Asia/Dubai'], ['966', 'Asia/Riyadh'], ['968', 'Asia/Muscat'], ['974', 'Asia/Qatar'],
+  ['973', 'Asia/Bahrain'], ['965', 'Asia/Kuwait'], ['962', 'Asia/Amman'], ['961', 'Asia/Beirut'],
+  ['977', 'Asia/Kathmandu'], ['880', 'Asia/Dhaka'], ['234', 'Africa/Lagos'], ['254', 'Africa/Nairobi'],
+  ['91', 'Asia/Kolkata'], ['20', 'Africa/Cairo'], ['44', 'Europe/London'], ['49', 'Europe/Berlin'],
+  ['33', 'Europe/Paris'], ['81', 'Asia/Tokyo'], ['86', 'Asia/Shanghai'], ['65', 'Asia/Singapore'],
+  ['60', 'Asia/Kuala_Lumpur'], ['63', 'Asia/Manila'], ['62', 'Asia/Jakarta'], ['66', 'Asia/Bangkok'],
+  ['61', 'Australia/Sydney'], ['64', 'Pacific/Auckland'], ['27', 'Africa/Johannesburg'],
+  ['55', 'America/Sao_Paulo'], ['52', 'America/Mexico_City'], ['92', 'Asia/Karachi'],
+  ['94', 'Asia/Colombo'], ['34', 'Europe/Madrid'], ['39', 'Europe/Rome'], ['90', 'Europe/Istanbul'],
+  ['1', 'America/New_York'], ['7', 'Europe/Moscow'],
+];
+
+/** Suggested workspace timezone for a WhatsApp number, or null when unknown (or a Meta +1 555 test number). */
+export function suggestTimezoneFromPhone(phone: string | null | undefined): string | null {
+  const digits = (phone || '').replace(/\D/g, '');
+  if (!digits || digits.startsWith('1555')) return null;
+  const sorted = [...CALLING_CODE_TIMEZONES].sort((a, b) => b[0].length - a[0].length);
+  for (const [code, tz] of sorted) if (digits.startsWith(code)) return tz;
+  return null;
+}
+
+/** All IANA timezones the browser knows (falls back to a short list). */
+export function allTimeZones(): string[] {
+  const fn = (Intl as unknown as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf;
+  const list = fn ? fn('timeZone') : [];
+  const base = list.length ? list : CALLING_CODE_TIMEZONES.map(([, tz]) => tz);
+  return Array.from(new Set(['UTC', ...base])).sort();
+}

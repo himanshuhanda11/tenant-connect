@@ -16562,6 +16562,7 @@ export type Database = {
           tax_id: string | null
           team_size: string | null
           timezone: string
+          timezone_source: string
           updated_at: string
           vat_enabled: boolean | null
           vat_percentage: number | null
@@ -16591,6 +16592,7 @@ export type Database = {
           tax_id?: string | null
           team_size?: string | null
           timezone?: string
+          timezone_source?: string
           updated_at?: string
           vat_enabled?: boolean | null
           vat_percentage?: number | null
@@ -16620,6 +16622,7 @@ export type Database = {
           tax_id?: string | null
           team_size?: string | null
           timezone?: string
+          timezone_source?: string
           updated_at?: string
           vat_enabled?: boolean | null
           vat_percentage?: number | null
@@ -19778,6 +19781,7 @@ export type Database = {
           tax_id: string | null
           team_size: string | null
           timezone: string
+          timezone_source: string
           updated_at: string
           vat_enabled: boolean | null
           vat_percentage: number | null
@@ -20305,6 +20309,10 @@ export type Database = {
           id: string
           ticket_id: string
         }[]
+      }
+      suggest_timezone_for_number: {
+        Args: { p_number: string }
+        Returns: string
       }
       transfer_conversation: {
         Args: {

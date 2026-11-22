@@ -63,6 +63,9 @@ import {
 import { format, formatDistanceToNow, differenceInHours } from 'date-fns';
 import { InboxConversation, InboxMessage, WAStatus, ConversationEvent, STATUS_CONFIG, PRIORITY_CONFIG, ConversationStatus } from '@/types/inbox';
 import { cn } from '@/lib/utils';
+import { useWorkspaceTimezone } from '@/hooks/useWorkspaceTimezone';
+import { useAgentDisplayNames } from '@/hooks/useAgentDisplayNames';
+import { formatInZone } from '@/lib/workspaceTime';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -139,6 +142,8 @@ export function InboxChatThread({
   viewerName,
 }: InboxChatThreadProps) {
   const { user } = useAuth();
+  const workspaceTz = useWorkspaceTimezone();
+  const agentName = useAgentDisplayNames();
   const { getRandomMessage } = useGreetingTemplates();
   const [personalGreetingsEnabled, setPersonalGreetingsEnabled] = useState(true);
 
@@ -391,7 +396,7 @@ export function InboxChatThread({
                 {conversation.assigned_agent && !isMobile && (
                   <>
                     <span>·</span>
-                    <span className="truncate">{conversation.assigned_agent.full_name}</span>
+                    <span className="truncate">{agentName(conversation.assigned_to, conversation.assigned_agent.full_name)}</span>
                   </>
                 )}
               </div>
@@ -609,7 +614,7 @@ export function InboxChatThread({
         <div className="bg-purple-50 border-b border-purple-200 flex items-center gap-2 text-purple-800 px-4 py-2.5">
           <User className="h-4 w-4 flex-shrink-0" />
           <span className="flex-1 text-sm">
-            Assigned to <strong>{conversation.assigned_agent?.full_name || 'another agent'}</strong>
+            Assigned to <strong>{agentName(conversation.assigned_to, conversation.assigned_agent?.full_name) || 'another agent'}</strong>
           </span>
           <Button size="sm" variant="outline" className="h-7 text-xs border-purple-300 text-purple-700 hover:bg-purple-100" onClick={onIntervene}>
             <Hand className="h-3.5 w-3.5 mr-1" /> Intervene
@@ -630,7 +635,7 @@ export function InboxChatThread({
         <div className="bg-amber-50 border-b border-amber-200 flex items-center gap-2 text-amber-800 px-4 py-2.5">
           <Hand className="h-4 w-4 flex-shrink-0" />
           <span className="flex-1 text-sm font-medium">
-            You intervened in this conversation — now assigned to <strong>{conversation.assigned_agent?.full_name || 'another agent'}</strong>
+            You intervened in this conversation — now assigned to <strong>{agentName(conversation.assigned_to, conversation.assigned_agent?.full_name) || 'another agent'}</strong>
           </span>
         </div>
       )}
@@ -714,7 +719,7 @@ export function InboxChatThread({
                                 <strong>{event.from_agent.full_name}</strong> → <strong>{event.to_agent?.full_name || 'Unknown'}</strong>
                               </>
                             ) : (
-                              <>Assigned to <strong>{event.to_agent?.full_name || event.actor?.full_name}</strong></>
+                              <>Assigned to <strong>{agentName(event.to_agent?.id ?? event.actor?.id, event.to_agent?.full_name || event.actor?.full_name)}</strong></>
                             )}
                           </>
                         )}
@@ -878,10 +883,10 @@ export function InboxChatThread({
                     "flex items-center gap-1.5 text-[11px] text-muted-foreground mt-1",
                     isOutbound && "justify-end"
                   )}>
-                    <span>{format(new Date(message.created_at), 'h:mm a')}</span>
+                    <span title={formatInZone(message.created_at, workspaceTz)}>{formatInZone(message.created_at, workspaceTz, { hour: 'numeric', minute: '2-digit' })}</span>
                     {isOutbound && message.latest_status && STATUS_ICONS[message.latest_status]}
-                    {isOutbound && message.sender?.full_name && (
-                      <span className="opacity-70">• {message.sender.full_name}</span>
+                    {isOutbound && message.sender?.id && agentName(message.sender.id, message.sender.full_name) && (
+                      <span className="opacity-70">• {agentName(message.sender.id, message.sender.full_name)}</span>
                     )}
                   </div>
                 </div>

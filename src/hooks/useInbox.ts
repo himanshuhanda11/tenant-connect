@@ -104,7 +104,7 @@ function mapMessage(row: any): InboxMessage {
       id: row.sender_profile.id,
       full_name: row.sender_profile.full_name,
       avatar_url: row.sender_profile.avatar_url,
-    } : undefined,
+    } : row.sent_by ? { id: row.sent_by } : undefined,
   };
 }
 

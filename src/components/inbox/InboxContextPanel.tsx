@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LeadQualificationPanel } from './LeadQualificationPanel';
 import { InboxCRMOverview } from './InboxCRMOverview';
 import { ConversationTimesCard } from './ConversationTimesCard';
+import { useWorkspaceTimezone } from '@/hooks/useWorkspaceTimezone';
+import { formatInZone } from '@/lib/workspaceTime';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import {
@@ -97,6 +99,7 @@ export function InboxContextPanel({
   conversation, events, notes, onAddNote, onAddTag, onRemoveTag,
   availableTags: passedTags, isMobile = false, onInsertReply,
 }: InboxContextPanelProps) {
+  const workspaceTz = useWorkspaceTimezone();
   const [activeTab, setActiveTab] = useState('overview');
   const [newNote, setNewNote] = useState('');
   const [mentionIds, setMentionIds] = useState<string[]>([]);
@@ -528,7 +531,7 @@ export function InboxContextPanel({
                             {renderEventText(event)}
                           </p>
                           <p className="text-[10px] text-muted-foreground mt-0.5">
-                            {format(new Date(event.created_at), 'MMM d, h:mm a')}
+                            {formatInZone(event.created_at, workspaceTz, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}
                           </p>
                         </div>
                       </div>

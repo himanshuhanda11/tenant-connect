@@ -3,7 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTenant } from '@/contexts/TenantContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { formatDistanceToNow, format, startOfDay, isSameDay } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
+import { useWorkspaceTimezone } from '@/hooks/useWorkspaceTimezone';
+import { formatInZone, utcToLocalInput } from '@/lib/workspaceTime';
 import { Activity, MessageSquare, Phone, Mail, ArrowRightLeft, FileText, CheckCircle2, UserPlus, Plus } from 'lucide-react';
 import type { Deal, DealActivity } from '@/types/crm';
 
@@ -27,6 +29,7 @@ interface Props {
 export function ActivityView({ deals, onDealClick }: Props) {
   const { currentTenant } = useTenant();
   const tenantId = currentTenant?.id;
+  const timeZone = useWorkspaceTimezone();
   const [activities, setActivities] = useState<DealActivity[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,13 +53,14 @@ export function ActivityView({ deals, onDealClick }: Props) {
   const grouped = useMemo(() => {
     const map = new Map<string, DealActivity[]>();
     for (const a of activities) {
-      const key = format(startOfDay(new Date(a.created_at)), 'yyyy-MM-dd');
+      // Day key in the workspace time zone
+      const key = utcToLocalInput(new Date(a.created_at), timeZone).slice(0, 10);
       const arr = map.get(key) || [];
       arr.push(a);
       map.set(key, arr);
     }
     return Array.from(map.entries());
-  }, [activities]);
+  }, [activities, timeZone]);
 
   if (loading) {
     return <div className="space-y-2">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>;
@@ -73,13 +77,13 @@ export function ActivityView({ deals, onDealClick }: Props) {
   return (
     <div className="rounded-2xl border border-border/60 bg-card p-4 md:p-6 space-y-6">
       {grouped.map(([day, items]) => {
-        const dayDate = new Date(day);
-        const isToday = isSameDay(dayDate, new Date());
+        const isToday = day === utcToLocalInput(new Date(), timeZone).slice(0, 10);
+        const sample = items[0]?.created_at;
         return (
           <div key={day}>
             <div className="flex items-center gap-2 mb-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {isToday ? 'Today' : format(dayDate, 'EEEE, MMM d')}
+                {isToday ? 'Today' : formatInZone(sample, timeZone, { weekday: 'long', month: 'short', day: 'numeric' })}
               </h3>
               <span className="flex-1 h-px bg-border/60" />
               <span className="text-[10px] text-muted-foreground">{items.length}</span>

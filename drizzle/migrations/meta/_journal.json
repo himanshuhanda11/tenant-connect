@@ -71,6 +71,13 @@
       "when": 1795375014118,
       "tag": "0009_conversation_received_and_reply_times",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795375287153,
+      "tag": "0010_workspace_timezone_from_whatsapp_number",
+      "breakpoints": true
     }
   ]
 }

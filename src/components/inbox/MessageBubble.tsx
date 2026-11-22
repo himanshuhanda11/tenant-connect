@@ -1,3 +1,5 @@
+import { useWorkspaceTimezone } from '@/hooks/useWorkspaceTimezone';
+import { formatInZone } from '@/lib/workspaceTime';
 import { format } from 'date-fns';
 import { Check, CheckCheck, Clock, AlertCircle, Image, FileText, Play, Music } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -8,6 +10,7 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ message }: MessageBubbleProps) {
+  const workspaceTz = useWorkspaceTimezone();
   const isOutbound = message.direction === 'outbound';
 
   const getStatusIcon = (status: MessageStatus) => {
@@ -142,7 +145,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           )}
         >
           <span className="text-xs">
-            {format(new Date(message.created_at), 'HH:mm')}
+            {formatInZone(message.created_at, workspaceTz, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })}
           </span>
           {isOutbound && getStatusIcon(message.status)}
         </div>

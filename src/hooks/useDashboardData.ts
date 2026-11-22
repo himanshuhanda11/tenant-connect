@@ -17,15 +17,16 @@ import type {
   ConversationHeatmapData,
   NextBestAction,
 } from '@/types/dashboard';
+import { isValidTimeZone, startOfZonedDay } from '@/lib/workspaceTime';
 
-const getDateRange = (range: DashboardFilters['dateRange']) => {
+const getDateRange = (range: DashboardFilters['dateRange'], timeZone: string) => {
   const now = new Date();
   const end = now.toISOString();
   let start: string;
 
   switch (range) {
     case 'today':
-      start = new Date(now.setHours(0, 0, 0, 0)).toISOString();
+      start = startOfZonedDay(now, timeZone).toISOString();
       break;
     case '7d':
       start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -134,11 +135,11 @@ export function useDashboardData(filters: DashboardFilters) {
     if (!currentTenant || inFlightRef.current) return;
     inFlightRef.current = true;
 
-    const { start } = getDateRange(filters.dateRange);
+    const timeZone = isValidTimeZone(currentTenant.timezone) ? currentTenant.timezone : 'UTC';
+    const { start } = getDateRange(filters.dateRange, timeZone);
     const tId = currentTenant.id;
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayISO = todayStart.toISOString();
+    // "Today" starts at midnight in the workspace time zone, not the device's.
+    const todayISO = startOfZonedDay(new Date(), timeZone).toISOString();
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
